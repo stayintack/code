@@ -3,6 +3,5 @@ __pycache__/
 .ipynb_checkpoints/
 .venv/
 data/raw/*
-!data/raw/.gitkeep
 *.sqlite
 *.db

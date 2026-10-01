@@ -61,10 +61,14 @@ def load_uci_dataset(raw_dir: str | Path = "data/raw") -> pd.DataFrame:
         raise ValueError(f"Could not identify target column in {list(data.columns)}")
     data = data.rename(columns={target_candidates[0]: TARGET})
 
-    # Remove exact duplicate records and the source row identifier before modelling.
-    data = data.drop_duplicates()
     if "id" in data.columns:
+        # Remove the identifier before finding exact duplicate modeling rows;
+        # otherwise unique IDs mask repeated feature/outcome profiles.
+        data = data.drop_duplicates(subset=["id"], keep="first")
         data = data.drop(columns="id")
+
+    duplicate_profiles_removed = int(data.duplicated().sum())
+    data = data.drop_duplicates(keep="first").copy()
 
     # The source uses 0/5/6 for education and 0 for marriage as undocumented
     # or other categories; fold these into each field's documented "other" bin.
@@ -81,15 +85,19 @@ def load_uci_dataset(raw_dir: str | Path = "data/raw") -> pd.DataFrame:
     data[TARGET] = data[TARGET].astype("int8")
     if not set(data[TARGET].unique()).issubset({0, 1}):
         raise ValueError("Target must contain only 0 (paid) and 1 (default)")
-    return data.reset_index(drop=True)
+    data = data.reset_index(drop=True)
+    data.attrs["duplicate_profiles_removed"] = duplicate_profiles_removed
+    return data
 
 
 class WoEEncoder:
-    """Train-only quantile/categorical binning with smoothed WoE and IV.
+    """Train-only monotonic binning with smoothed WoE and IV.
 
     WoE is ``ln(good share / bad share)`` (good = non-default, bad = default).
-    Numerical cut points, rare-category pooling, and WoE maps are learned only
-    from the training partition. Unseen categories receive WoE 0 at scoring time.
+    Numerical cut points, repayment-status pooling, monotonic merges, and WoE
+    maps are learned only from the training partition. Payment-status fields
+    use three ordered groups: non-positive codes, one-month delay, and 2+ months.
+    Unseen categories receive WoE 0 at scoring time.
     """
 
     def __init__(
@@ -104,10 +112,52 @@ class WoEEncoder:
         self.min_category_count = min_category_count
         self.smoothing = smoothing
         self.numeric_edges_: dict[str, np.ndarray] = {}
+        self.status_edges_: dict[str, np.ndarray] = {}
+        self.status_bin_labels_: dict[str, dict[int, str]] = {}
+        self.monotonic_directions_: dict[str, str] = {}
         self.rare_categories_: dict[str, set[str]] = {}
         self.woe_maps_: dict[str, dict[object, float]] = {}
         self.iv_table_: pd.DataFrame | None = None
+        self.bin_table_: pd.DataFrame | None = None
         self.feature_names_in_: list[str] = []
+
+    @staticmethod
+    def _pava_blocks(
+        counts: pd.DataFrame,
+        *,
+        increasing: bool,
+        min_bin_count: int,
+    ) -> list[dict[str, int]]:
+        """Pool adjacent bins until event rates are monotonic and bins are large enough."""
+        blocks: list[dict[str, int]] = []
+        for index, row in counts.iterrows():
+            blocks.append({
+                "start": int(index),
+                "end": int(index) + 1,
+                "total": int(row["total"]),
+                "bad": int(row["bad"]),
+            })
+            while len(blocks) >= 2:
+                left, right = blocks[-2:]
+                left_rate = left["bad"] / left["total"] if left["total"] else 0.0
+                right_rate = right["bad"] / right["total"] if right["total"] else 0.0
+                violates_order = left_rate > right_rate if increasing else left_rate < right_rate
+                undersized = left["total"] < min_bin_count or right["total"] < min_bin_count
+                if not (violates_order or undersized):
+                    break
+                blocks[-2:] = [{
+                    "start": left["start"],
+                    "end": right["end"],
+                    "total": left["total"] + right["total"],
+                    "bad": left["bad"] + right["bad"],
+                }]
+        return blocks
+
+    @staticmethod
+    def _status_group(values: pd.Series) -> pd.Series:
+        numeric = pd.to_numeric(values, errors="coerce").to_numpy(dtype=float)
+        groups = np.where(numeric <= 0, 0, np.where(numeric == 1, 1, 2))
+        return pd.Series(groups, index=values.index, dtype="int64")
 
     def _bin_numeric(self, column: str, values: pd.Series) -> pd.Series:
         edges = self.numeric_edges_[column]
@@ -116,6 +166,10 @@ class WoEEncoder:
         return pd.Series(bins, index=values.index, dtype="int64")
 
     def _binned(self, column: str, values: pd.Series) -> pd.Series:
+        if column in PAYMENT_STATUS_COLUMNS:
+            groups = self._status_group(values).to_numpy()
+            bins = np.searchsorted(self.status_edges_[column], groups, side="left")
+            return pd.Series(bins, index=values.index, dtype="int64")
         if column in self.categorical_columns:
             categories = values.astype("string").fillna("__MISSING__").astype(str)
             rare = self.rare_categories_[column]
@@ -134,10 +188,36 @@ class WoEEncoder:
         iv_rows: list[dict[str, object]] = []
         n_good = int((y == 0).sum())
         n_bad = int((y == 1).sum())
+        bin_rows: list[dict[str, object]] = []
+        status_group_names = [
+            "Codes -2/-1/0 (no positive delay code)",
+            "Code 1 (one month past due)",
+            "Codes 2+ (two or more months past due)",
+        ]
 
         for column in self.feature_names_in_:
             values = X[column]
-            if column in self.categorical_columns:
+            if column in PAYMENT_STATUS_COLUMNS:
+                initial_bins = self._status_group(values)
+                counts = (
+                    pd.DataFrame({"bin": initial_bins, "target": y})
+                    .groupby("bin", observed=True)["target"]
+                    .agg(bad="sum", total="size")
+                    .reindex(range(3), fill_value=0)
+                )
+                blocks = self._pava_blocks(
+                    counts, increasing=True, min_bin_count=self.min_category_count
+                )
+                self.status_edges_[column] = np.asarray(
+                    [block["end"] - 0.5 for block in blocks[:-1]], dtype=float
+                )
+                self.status_bin_labels_[column] = {
+                    bin_index: " + ".join(status_group_names[block["start"]:block["end"]])
+                    for bin_index, block in enumerate(blocks)
+                }
+                self.monotonic_directions_[column] = "increasing default rate by delay severity"
+                bins = self._binned(column, values)
+            elif column in self.categorical_columns:
                 categories = values.astype("string").fillna("__MISSING__").astype(str)
                 counts = categories.value_counts(dropna=False)
                 rare = set(counts[counts < self.min_category_count].index.astype(str))
@@ -146,9 +226,31 @@ class WoEEncoder:
             else:
                 numeric = pd.to_numeric(values, errors="coerce").astype(float)
                 quantiles = np.linspace(0, 1, self.max_bins + 1)[1:-1]
-                edges = np.unique(np.quantile(numeric.dropna(), quantiles))
-                edges = edges[(edges > numeric.min()) & (edges < numeric.max())]
-                self.numeric_edges_[column] = edges.astype(float)
+                initial_edges = np.unique(np.quantile(numeric.dropna(), quantiles))
+                initial_edges = initial_edges[(initial_edges > numeric.min()) & (initial_edges < numeric.max())]
+                initial_bins = pd.Series(
+                    np.searchsorted(initial_edges, numeric.to_numpy(dtype=float), side="left"),
+                    index=values.index,
+                    dtype="int64",
+                )
+                initial_bin_count = len(initial_edges) + 1
+                counts = (
+                    pd.DataFrame({"bin": initial_bins, "target": y})
+                    .groupby("bin", observed=True)["target"]
+                    .agg(bad="sum", total="size")
+                    .reindex(range(initial_bin_count), fill_value=0)
+                )
+                rho = numeric.corr(y, method="spearman")
+                increasing = bool(pd.isna(rho) or rho >= 0)
+                blocks = self._pava_blocks(
+                    counts, increasing=increasing, min_bin_count=self.min_category_count
+                )
+                self.numeric_edges_[column] = np.asarray(
+                    [initial_edges[block["end"] - 1] for block in blocks[:-1]], dtype=float
+                )
+                self.monotonic_directions_[column] = (
+                    "increasing default rate" if increasing else "decreasing default rate"
+                )
                 bins = self._bin_numeric(column, numeric)
 
             summary = pd.DataFrame({"bin": bins, "target": y})
@@ -168,6 +270,16 @@ class WoEEncoder:
             self.woe_maps_[column] = {
                 key: float(value) for key, value in woe.items()
             }
+            for key in by_bin.index:
+                bin_rows.append({
+                    "feature": column,
+                    "bin": key,
+                    "training_accounts": int(by_bin.loc[key, "total"]),
+                    "training_bad_rate": float(by_bin.loc[key, "bad"] / by_bin.loc[key, "total"]),
+                    "woe": float(woe.loc[key]),
+                    "iv_contribution": float((good_share.loc[key] - bad_share.loc[key]) * woe.loc[key]),
+                    "monotonic_direction": self.monotonic_directions_.get(column, "categorical"),
+                })
             iv_rows.append(
                 {
                     "feature": column,
@@ -180,6 +292,7 @@ class WoEEncoder:
         self.iv_table_ = pd.DataFrame(iv_rows).sort_values(
             "iv", ascending=False, ignore_index=True
         )
+        self.bin_table_ = pd.DataFrame(bin_rows)
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -193,6 +306,8 @@ class WoEEncoder:
 
     def bin_labels(self, column: str) -> dict[object, str]:
         """Return readable bin labels keyed like the fitted WoE map."""
+        if column in PAYMENT_STATUS_COLUMNS:
+            return self.status_bin_labels_[column]
         if column in self.categorical_columns:
             return {key: str(key) for key in self.woe_maps_[column]}
         edges = self.numeric_edges_[column]
@@ -214,8 +329,8 @@ def ks_statistic(y_true: pd.Series | np.ndarray, probability: np.ndarray) -> flo
 
 def score_from_probability(
     probability: np.ndarray | pd.Series,
-    base_score: int = 600,
-    base_good_odds: float = 50.0,
+    base_score: int = 500,
+    base_good_odds: float = 3.52,
     points_to_double_odds: int = 20,
 ) -> np.ndarray:
     """Convert default probability to a score where higher means lower risk."""
@@ -229,8 +344,8 @@ def build_scorecard(
     model,
     encoder: WoEEncoder,
     selected_features: list[str],
-    base_score: int = 600,
-    base_good_odds: float = 50.0,
+    base_score: int = 500,
+    base_good_odds: float = 3.52,
     points_to_double_odds: int = 20,
 ) -> pd.DataFrame:
     """Create additive scorecard points from a fitted logistic/WoE model."""
@@ -250,6 +365,7 @@ def build_scorecard(
     ]
     for feature in selected_features:
         labels = encoder.bin_labels(feature)
+        bin_stats = encoder.bin_table_.loc[encoder.bin_table_["feature"].eq(feature)].set_index("bin")
         for bin_key, woe in encoder.woe_maps_[feature].items():
             rows.append(
                 {
@@ -258,6 +374,9 @@ def build_scorecard(
                     "woe": float(woe),
                     "coefficient": float(coefficients[feature]),
                     "points": float(-factor * coefficients[feature] * woe),
+                    "training_accounts": int(bin_stats.loc[bin_key, "training_accounts"]),
+                    "training_bad_rate": float(bin_stats.loc[bin_key, "training_bad_rate"]),
+                    "iv_contribution": float(bin_stats.loc[bin_key, "iv_contribution"]),
                 }
             )
     return pd.DataFrame(rows)

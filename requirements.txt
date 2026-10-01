@@ -1,4 +1,5 @@
-# Tested on Python 3.12; exact direct-dependency versions used for the results.
+# Python >=3.12 is required by the pinned NumPy, SciPy, and XGBoost releases.
+# Exact direct-dependency versions used to execute the notebook.
 ipykernel==6.31.0
 jupyterlab==4.6.4
 matplotlib==3.11.2

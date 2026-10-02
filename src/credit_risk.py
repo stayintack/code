@@ -340,6 +340,56 @@ def score_from_probability(
     return base_score + factor * (good_log_odds - np.log(base_good_odds))
 
 
+def score_new_applicants(
+    applicants: pd.DataFrame,
+    encoder: WoEEncoder,
+    model,
+    selected_features: list[str],
+    *,
+    base_score: int = 500,
+    base_good_odds: float = 3.52,
+    points_to_double_odds: int = 20,
+) -> pd.DataFrame:
+    """Return predicted default probabilities and integer scores for new rows.
+
+    ``applicants`` must contain the raw behavior columns used to fit ``encoder``.
+    Extra columns are ignored, so a client ID may be retained for joining results.
+    """
+    if not isinstance(applicants, pd.DataFrame):
+        raise TypeError("applicants must be a pandas DataFrame")
+    if applicants.empty:
+        raise ValueError("applicants must contain at least one row")
+
+    required = list(encoder.feature_names_in_)
+    missing = [column for column in required if column not in applicants.columns]
+    if missing:
+        raise ValueError(f"Missing required applicant fields: {missing}")
+    unknown_features = [feature for feature in selected_features if feature not in required]
+    if unknown_features:
+        raise ValueError(f"Selected model features were not fitted by the encoder: {unknown_features}")
+
+    raw_features = applicants.loc[:, required].apply(pd.to_numeric, errors="coerce")
+    if raw_features.isna().any().any():
+        invalid = raw_features.columns[raw_features.isna().any()].tolist()
+        raise ValueError(f"Missing or non-numeric applicant values in: {invalid}")
+
+    woe_features = encoder.transform(raw_features).loc[:, selected_features]
+    probability = model.predict_proba(woe_features)[:, 1]
+    score = score_from_probability(
+        probability,
+        base_score=base_score,
+        base_good_odds=base_good_odds,
+        points_to_double_odds=points_to_double_odds,
+    )
+    return pd.DataFrame(
+        {
+            "probability_of_default": probability,
+            "credit_score": np.rint(score).astype(int),
+        },
+        index=applicants.index,
+    )
+
+
 def build_scorecard(
     model,
     encoder: WoEEncoder,

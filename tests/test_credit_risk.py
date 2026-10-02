@@ -48,55 +48,67 @@ class DataCleaningTests(unittest.TestCase):
 class ScorecardInferenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        artifact_path = PROJECT_ROOT / "models" / "credit_default_scorecard.joblib"
-        cls.bundle = joblib.load(artifact_path)
+        rng = np.random.default_rng(7)
+        X = pd.DataFrame(
+            {
+                "limit_bal": rng.choice([20_000, 50_000, 100_000, 200_000], 160),
+                "pay_0": rng.choice([-1, 0, 1, 2], 160),
+                "pay_amt1": rng.choice([0, 500, 1_500, 5_000], 160),
+            }
+        )
+        y = ((X["pay_0"] >= 1) | ((X["limit_bal"] <= 50_000) & (X["pay_amt1"] <= 500))).astype(int)
+        cls.encoder = WoEEncoder(
+            categorical_columns=["pay_0"], max_bins=4, min_category_count=1
+        ).fit(X, y)
+        cls.selected_features = ["pay_0", "limit_bal", "pay_amt1"]
+        cls.model = LogisticRegression(max_iter=1_000).fit(
+            cls.encoder.transform(X)[cls.selected_features], y
+        )
+        cls.bundle = {
+            "encoder": cls.encoder,
+            "model": cls.model,
+            "selected_features": tuple(cls.selected_features),
+            "base_score": 500,
+            "base_good_odds": 3.52,
+            "points_to_double_odds": 20,
+        }
 
     def test_saved_bundle_scores_new_rows(self) -> None:
-        encoder = self.bundle["encoder"]
-        features = list(encoder.feature_names_in_)
+        features = list(self.encoder.feature_names_in_)
         applicants = pd.DataFrame(
-            [{feature: 0 for feature in features}, {feature: 1 for feature in features}],
+            [
+                {"limit_bal": 20_000, "pay_0": 2, "pay_amt1": 0},
+                {"limit_bal": 100_000, "pay_0": -1, "pay_amt1": 5_000},
+            ],
             index=["applicant-a", "applicant-b"],
         )
-        results = score_new_applicants(applicants, **{
-            "encoder": encoder,
-            "model": self.bundle["model"],
-            "selected_features": self.bundle["selected_features"],
-            "base_score": self.bundle["base_score"],
-            "base_good_odds": self.bundle["base_good_odds"],
-            "points_to_double_odds": self.bundle["points_to_double_odds"],
-        })
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "scorecard.joblib"
+            joblib.dump(self.bundle, path)
+            bundle = joblib.load(path)
+        results = score_new_applicants(applicants, **bundle)
 
-        expected_pd = self.bundle["model"].predict_proba(
-            encoder.transform(applicants[features])[list(self.bundle["selected_features"])]
+        expected_pd = bundle["model"].predict_proba(
+            bundle["encoder"].transform(applicants[features])[list(bundle["selected_features"])]
         )[:, 1]
         np.testing.assert_allclose(results["probability_of_default"], expected_pd)
         self.assertEqual(results.index.tolist(), applicants.index.tolist())
         self.assertTrue(results["credit_score"].between(0, 1_000).all())
 
     def test_missing_required_field_is_reported(self) -> None:
-        encoder = self.bundle["encoder"]
-        features = list(encoder.feature_names_in_)
-        applicants = pd.DataFrame([{feature: 0 for feature in features[:-1]}])
+        applicants = pd.DataFrame([{"limit_bal": 20_000, "pay_0": 0}])
         with self.assertRaisesRegex(ValueError, "Missing required applicant fields"):
             score_new_applicants(
-                applicants,
-                encoder,
-                self.bundle["model"],
-                list(self.bundle["selected_features"]),
+                applicants, self.encoder, self.model, self.selected_features
             )
 
     def test_missing_or_non_numeric_value_is_rejected(self) -> None:
-        encoder = self.bundle["encoder"]
-        features = list(encoder.feature_names_in_)
-        applicants = pd.DataFrame([{feature: 0 for feature in features}])
-        applicants[features[0]] = pd.Series(["not-a-number"], dtype="object")
+        applicants = pd.DataFrame(
+            [{"limit_bal": 20_000, "pay_0": 0, "pay_amt1": "not-a-number"}]
+        )
         with self.assertRaisesRegex(ValueError, "non-numeric applicant values"):
             score_new_applicants(
-                applicants,
-                encoder,
-                self.bundle["model"],
-                list(self.bundle["selected_features"]),
+                applicants, self.encoder, self.model, self.selected_features
             )
 
 

@@ -12,7 +12,7 @@ This is a portfolio demonstration using historical Taiwanese credit-card data fr
 
 The notebook downloads the public Excel workbook directly from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/350/defaultofcreditcardclients) on first run; no account is required. UCI reports 30,000 source observations. The loader removes duplicate IDs, removes the ID field, then drops 35 exact duplicate feature/outcome rows. This leaves **29,965 unique modeling profiles** and prevents identical records from appearing on both sides of the train/test split. The source file is cached under `data/raw/`, which is created automatically and excluded from Git.
 
-The loader standardises field names, maps education and marriage codes to the documented “other” groups, and validates numeric types, missingness, and the binary target. The UCI source reports no missing values. The dataset is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Attribution: Yeh, I. (2009), *Default of Credit Card Clients*, UCI Machine Learning Repository, [DOI: 10.24432/C55S3H](https://doi.org/10.24432/C55S3H).
+The loader standardises field names, maps education and marriage codes to the documented ��other�� groups, and validates numeric types, missingness, and the binary target. The UCI source reports no missing values. The dataset is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Attribution: Yeh, I. (2009), *Default of Credit Card Clients*, UCI Machine Learning Repository, [DOI: 10.24432/C55S3H](https://doi.org/10.24432/C55S3H).
 
 ## Methods
 
@@ -38,7 +38,7 @@ The checked-in notebook includes outputs from a full execution using the pinned 
 | Test ROC AUC | 0.7542 | 0.7702 |
 | Test KS | 0.3974 | 0.4175 |
 
-At the illustrative 9% validation bad-rate appetite, the selected PD cut-off was **0.130**. On validation it approved 40.5% of accounts with an 8.69% bad rate. On the untouched test split it approved **39.9%**, with a **9.4%** bad rate among approved accounts, covering 17.0% of all test defaults. The test score range was 407–540, with score 500 anchored to training good-to-bad odds.
+At the illustrative 9% validation bad-rate appetite, the selected PD cut-off was **0.130**. On validation it approved 40.5% of accounts with an 8.69% bad rate. On the untouched test split it approved **39.9%**, with a **9.4%** bad rate among approved accounts, covering 17.0% of all test defaults. The test score range was 407�C540, with score 500 anchored to training good-to-bad odds.
 
 For reference, a 0.10 PD test cut-off approved 21.0% of accounts with an 8.8% bad rate; a 0.15 cut-off approved 52.3% with a 10.7% bad rate; a 0.30 cut-off approved 79.6% with a 14.0% bad rate. XGBoost ranked better on this split, while logistic regression provides the additive, reviewable scorecard. XGBoost AUC can vary by around 0.001 across operating systems and native builds; the displayed result is from the Windows run.
 
@@ -56,7 +56,7 @@ python -m pip install -r requirements.txt
 jupyter lab notebooks/credit_default_risk.ipynb
 ```
 
-Run cells from top to bottom. The first run downloads the UCI workbook and caches it in `data/raw/`; later runs use the cached copy. A working internet connection is needed only for the first download. The notebook saves a reusable scorecard bundle in `models/`.
+Run cells from top to bottom. The first run downloads the UCI workbook and caches it in `data/raw/`; later runs use the cached copy. A working internet connection is needed only for the first download. The notebook saves a reusable scorecard bundle in `models/`; the generated binary is ignored by Git and can be reproduced by rerunning the notebook.
 
 Run the unit tests with:
 
@@ -64,19 +64,37 @@ Run the unit tests with:
 python -m unittest discover -s tests -v
 ```
 
+To score a new applicant after running the notebook:
+
+```python
+import joblib
+from src.credit_risk import score_new_applicants
+
+bundle = joblib.load("models/credit_default_scorecard.joblib")
+scores = score_new_applicants(
+    applicants,
+    encoder=bundle["encoder"],
+    model=bundle["model"],
+    selected_features=list(bundle["selected_features"]),
+    base_score=bundle["base_score"],
+    base_good_odds=bundle["base_good_odds"],
+    points_to_double_odds=bundle["points_to_double_odds"],
+)
+```
+
 ## Project structure
 
 ```text
 .
-├── notebooks/credit_default_risk.ipynb  # Executed analysis, tables and plots
-├── sql/eda_queries.sql                   # SQLite portfolio queries
-├── src/credit_risk.py                    # Data loading, WoE/IV, scoring and policy utilities
-├── src/__init__.py
-├── tests/test_credit_risk.py             # Cleaning and inference tests
-├── models/credit_default_scorecard.joblib # Saved logistic scorecard bundle
-├── data/raw/                              # Created on first run; downloaded data is gitignored
-├── requirements.txt
-└── .gitignore
+������ notebooks/credit_default_risk.ipynb  # Executed analysis, tables and plots
+������ sql/eda_queries.sql                   # SQLite portfolio queries
+������ src/credit_risk.py                    # Data loading, WoE/IV, scoring and policy utilities
+������ src/__init__.py
+������ tests/test_credit_risk.py             # Cleaning and inference tests
+������ models/credit_default_scorecard.joblib # Generated by notebook; gitignored
+������ data/raw/                              # Created on first run; downloaded data is gitignored
+������ requirements.txt
+������ .gitignore
 ```
 
 ## Conclusion and limitations

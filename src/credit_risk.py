@@ -19,6 +19,9 @@ UCI_DATASET_URL = (
 TARGET = "default_flag"
 DEMOGRAPHIC_COLUMNS = ["sex", "education", "marriage", "age"]
 PAYMENT_STATUS_COLUMNS = ["pay_0", "pay_2", "pay_3", "pay_4", "pay_5", "pay_6"]
+# UCI repayment status codes: -1 paid duly, 1-9 months of delay (9 = nine or
+# more); -2 and 0 are observed in the source data but not documented.
+PAYMENT_STATUS_RANGE = (-2, 9)
 
 
 def _standardize_column_name(value: object) -> str:
@@ -295,11 +298,18 @@ class WoEEncoder:
         self.bin_table_ = pd.DataFrame(bin_rows)
         return self
 
-    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+    def transform(
+        self, X: pd.DataFrame, columns: list[str] | None = None
+    ) -> pd.DataFrame:
+        """WoE-encode fitted features; ``columns`` limits output to a subset."""
         if self.iv_table_ is None:
             raise RuntimeError("Call fit before transform")
+        columns = self.feature_names_in_ if columns is None else list(columns)
+        unknown = [column for column in columns if column not in self.feature_names_in_]
+        if unknown:
+            raise ValueError(f"Columns were not fitted by the encoder: {unknown}")
         transformed: dict[str, pd.Series] = {}
-        for column in self.feature_names_in_:
+        for column in columns:
             bins = self._binned(column, X[column])
             transformed[column] = bins.map(self.woe_maps_[column]).fillna(0.0)
         return pd.DataFrame(transformed, index=X.index, dtype=float)
@@ -340,6 +350,31 @@ def score_from_probability(
     return base_score + factor * (good_log_odds - np.log(base_good_odds))
 
 
+def _validate_applicant_ranges(raw_features: pd.DataFrame) -> None:
+    """Raise if applicant values fall outside the ranges the scorecard supports."""
+    low, high = PAYMENT_STATUS_RANGE
+    problems: list[str] = []
+    for column in raw_features.columns:
+        values = raw_features[column]
+        if column in PAYMENT_STATUS_COLUMNS:
+            invalid = values.ne(values.round()) | ~values.between(low, high)
+            rule = f"integer status code from {low} to {high}"
+        elif column == "limit_bal":
+            invalid = values.le(0)
+            rule = "positive credit limit"
+        elif column.startswith("pay_amt"):
+            invalid = values.lt(0)
+            rule = "non-negative payment amount"
+        else:
+            continue
+        if invalid.any():
+            rows = invalid[invalid].index.tolist()
+            shown = rows[:5] + (["..."] if len(rows) > 5 else [])
+            problems.append(f"{column}: expected {rule} (rows {shown})")
+    if problems:
+        raise ValueError("Out-of-range applicant values: " + "; ".join(problems))
+
+
 def score_new_applicants(
     applicants: pd.DataFrame,
     encoder: WoEEncoder,
@@ -352,28 +387,35 @@ def score_new_applicants(
 ) -> pd.DataFrame:
     """Return predicted default probabilities and integer scores for new rows.
 
-    ``applicants`` must contain the raw behavior columns used to fit ``encoder``.
+    ``applicants`` must contain the raw columns named in ``selected_features``.
     Extra columns are ignored, so a client ID may be retained for joining results.
+    Values must be finite and numeric; repayment status codes must be integers in
+    ``PAYMENT_STATUS_RANGE``, credit limits positive, and payment amounts
+    non-negative. Invalid rows raise ``ValueError`` rather than being scored.
     """
     if not isinstance(applicants, pd.DataFrame):
         raise TypeError("applicants must be a pandas DataFrame")
     if applicants.empty:
         raise ValueError("applicants must contain at least one row")
 
-    required = list(encoder.feature_names_in_)
+    required = list(selected_features)
+    unknown_features = [
+        feature for feature in required if feature not in encoder.feature_names_in_
+    ]
+    if unknown_features:
+        raise ValueError(f"Selected model features were not fitted by the encoder: {unknown_features}")
     missing = [column for column in required if column not in applicants.columns]
     if missing:
         raise ValueError(f"Missing required applicant fields: {missing}")
-    unknown_features = [feature for feature in selected_features if feature not in required]
-    if unknown_features:
-        raise ValueError(f"Selected model features were not fitted by the encoder: {unknown_features}")
 
     raw_features = applicants.loc[:, required].apply(pd.to_numeric, errors="coerce")
-    if raw_features.isna().any().any():
-        invalid = raw_features.columns[raw_features.isna().any()].tolist()
+    non_finite = ~np.isfinite(raw_features.to_numpy(dtype=float))
+    if non_finite.any():
+        invalid = raw_features.columns[non_finite.any(axis=0)].tolist()
         raise ValueError(f"Missing or non-numeric applicant values in: {invalid}")
+    _validate_applicant_ranges(raw_features)
 
-    woe_features = encoder.transform(raw_features).loc[:, selected_features]
+    woe_features = encoder.transform(raw_features, columns=required)
     probability = model.predict_proba(woe_features)[:, 1]
     score = score_from_probability(
         probability,

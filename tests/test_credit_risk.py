@@ -57,6 +57,7 @@ class ScorecardInferenceTests(unittest.TestCase):
             }
         )
         y = ((X["pay_0"] >= 1) | ((X["limit_bal"] <= 50_000) & (X["pay_amt1"] <= 500))).astype(int)
+        cls.X, cls.y = X, y
         cls.encoder = WoEEncoder(
             categorical_columns=["pay_0"], max_bins=4, min_category_count=1
         ).fit(X, y)
@@ -98,6 +99,43 @@ class ScorecardInferenceTests(unittest.TestCase):
     def test_missing_required_field_is_reported(self) -> None:
         applicants = pd.DataFrame([{"limit_bal": 20_000, "pay_0": 0}])
         with self.assertRaisesRegex(ValueError, "Missing required applicant fields"):
+            score_new_applicants(
+                applicants, self.encoder, self.model, self.selected_features
+            )
+
+    def test_only_selected_fields_are_required(self) -> None:
+        applicants = pd.DataFrame(
+            [{"pay_0": 0, "pay_amt1": 1_500}], index=["applicant-c"]
+        )
+        subset = ["pay_0", "pay_amt1"]
+        model = LogisticRegression(max_iter=1_000).fit(
+            self.encoder.transform(self.X, columns=subset), self.y
+        )
+        results = score_new_applicants(applicants, self.encoder, model, subset)
+        self.assertEqual(results.index.tolist(), ["applicant-c"])
+        self.assertTrue(results["probability_of_default"].between(0, 1).all())
+
+    def test_out_of_range_values_are_rejected(self) -> None:
+        valid = {"limit_bal": 50_000, "pay_0": 0, "pay_amt1": 500}
+        cases = {
+            "pay_0": [10, -3, 1.5],
+            "limit_bal": [0, -5_000],
+            "pay_amt1": [-1],
+        }
+        for column, bad_values in cases.items():
+            for bad_value in bad_values:
+                with self.subTest(column=column, value=bad_value):
+                    applicants = pd.DataFrame([{**valid, column: bad_value}])
+                    with self.assertRaisesRegex(ValueError, f"Out-of-range applicant values: {column}"):
+                        score_new_applicants(
+                            applicants, self.encoder, self.model, self.selected_features
+                        )
+
+    def test_infinite_value_is_rejected(self) -> None:
+        applicants = pd.DataFrame(
+            [{"limit_bal": np.inf, "pay_0": 0, "pay_amt1": 500}]
+        )
+        with self.assertRaisesRegex(ValueError, "non-numeric applicant values"):
             score_new_applicants(
                 applicants, self.encoder, self.model, self.selected_features
             )

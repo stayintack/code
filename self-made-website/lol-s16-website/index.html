@@ -17,10 +17,10 @@
 :root{
   --paper:#ffffff; --paper-2:#f3f3f1; --paper-3:#e8e8e4;
   --ink:#111114; --ink-2:#2d2d34; --mute:#6c6c75; --faint:#a1a1a8;
-  --rule:#e3e3df; --rule-2:#c6c6c1;
+  --rule:#e7e7e3; --rule-2:#d2d2cc;
   --night:#0e0e11; --night-2:#1b1b21; --night-line:rgba(255,255,255,.12); --night-mute:rgba(255,255,255,.56);
-  --accent:#2a45ff; --accent-soft:rgba(42,69,255,.08); --accent-ink:#ffffff;
-  --live:#ff2d3e; --win:#0b9467; --win-soft:rgba(11,148,103,.09); --lose:#e0414a; --lose-soft:rgba(224,65,74,.07);
+  --accent:#b0122d; --accent-2:#d81f3d; --accent-soft:rgba(176,18,45,.07); --accent-ink:#ffffff; --accent-night:#ff6b81;
+  --live:#ff2b3d; --win:#0b8f63; --win-soft:rgba(11,143,99,.09); --lose:#8d8d95; --lose-soft:rgba(17,17,20,.06);
   --crest:#17171c;
   --f-num:"Archivo","Noto Sans SC",system-ui,sans-serif;
   --f-head:"Noto Serif SC","Songti SC",serif;
@@ -32,13 +32,17 @@ html{background:var(--paper)}
 body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
 .wrap{max-width:1360px;margin:0 auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
-@media (max-width:600px){.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+@media (max-width:600px){.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}.ticker-in.wrap{padding-left:0}.tk-label{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:12px}.chip{width:150px;padding:8px 12px}}
 button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
 a{color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1,h2,h3{margin:0;text-wrap:balance}
 .num{font-family:var(--f-num);font-stretch:75%;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.005em}
-.kicker{font-family:var(--f-num);font-stretch:118%;font-weight:800;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-num);font-stretch:118%;font-weight:800;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+.kicker::before{content:"";width:16px;height:3px;background:currentColor;transform:skewX(-20deg)}
+.nw{white-space:nowrap}
+.sd{display:inline-block;font:700 9.5px/1 var(--f-num);font-stretch:112%;letter-spacing:.08em;color:var(--mute);padding:2px 4px 2px;border:1px solid var(--rule-2);border-radius:3px;vertical-align:2px;white-space:nowrap}
+.night .sd,.cover .sd,.dr-top .sd{color:var(--night-mute);border-color:var(--night-line)}
 
 /* crests: logos sit on a dark badge so white wordmarks read on paper */
 .crest{--s:24px;width:var(--s);height:var(--s);border-radius:calc(var(--s) * .22);background:var(--crest);display:grid;place-items:center;flex:none;position:relative}
@@ -51,9 +55,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
 /* ticker */
 .ticker{background:var(--night);color:#fff;border-bottom:1px solid var(--night-line)}
-.ticker-in{position:relative;display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:none}
+.ticker-in{position:relative;display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:none;padding-left:0}
 .ticker-in::-webkit-scrollbar{display:none}
-.tk-label{position:sticky;left:0;z-index:2;background:var(--night);flex:none;display:flex;flex-direction:column;justify-content:center;padding:10px 18px 10px 0;margin-right:4px;border-right:1px solid var(--night-line)}
+.tk-label{position:sticky;left:0;z-index:2;background:var(--night);box-shadow:8px 0 12px -6px rgba(0,0,0,.6);flex:none;display:flex;flex-direction:column;justify-content:center;padding:10px 18px 10px max(24px,env(safe-area-inset-left,0px));margin-right:4px;border-right:1px solid var(--night-line)}
 .tk-label b{font:900 15px var(--f-num);font-stretch:118%;letter-spacing:.06em}
 .tk-label small{font-size:11px;color:var(--night-mute)}
 .chip{flex:none;width:176px;padding:9px 14px;border-right:1px solid var(--night-line);text-align:left;display:flex;flex-direction:column;gap:3px;transition:background .15s}
@@ -65,7 +69,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .chip .cr .sc{margin-left:auto;font-variant-numeric:tabular-nums}
 .chip .cr.l{color:var(--night-mute)}
 .chip .cr.l .crest{opacity:.5}
-.chip.fol{box-shadow:inset 0 3px 0 var(--accent)}
+.chip.fol{box-shadow:inset 0 3px 0 var(--accent-2)}
+.chip.is-live{background:linear-gradient(180deg,rgba(255,43,61,.16),transparent)}
 
 /* masthead */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:2px solid var(--ink)}
@@ -85,8 +90,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .btn:hover{background:var(--ink);color:var(--paper)}
 .btn.solid{background:var(--ink);color:var(--paper)}
 .btn.solid:hover{background:var(--accent);border-color:var(--accent)}
+.btn.red{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.red:hover{background:var(--accent-2);border-color:var(--accent-2)}
 .btn.acc{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn.acc:hover{filter:brightness(1.1)}
+.btn.acc:hover{background:var(--accent-2);border-color:var(--accent-2)}
 .btn.ghost{border-color:transparent;color:var(--mute)}
 .btn.ghost:hover{background:var(--paper-2);color:var(--ink)}
 .btn.danger{border-color:var(--lose);color:var(--lose)}
@@ -106,12 +113,14 @@ h1,h2,h3{margin:0;text-wrap:balance}
   .tabs{order:3;width:100%;height:44px;overflow-x:auto;scrollbar-width:none;margin:0 -14px}
   .tools{gap:6px}
 }
-@media (max-width:600px){.wide{display:none}.tools .btn{padding:6px 11px}.switch span{display:none}.brand span{display:none}}
+.star-ic{display:none;color:var(--accent);font-size:15px;line-height:1}
+@media (max-width:600px){.wide{display:none}.tools .btn{padding:6px 10px}.brand span{display:none}.stack,.lbl-f{display:none}.star-ic{display:inline}.switch{gap:6px;font-size:12.5px}.switch i{width:32px;height:19px}.switch i::after{width:13px;height:13px}.switch input:checked + i::after{transform:translateX(13px)}}
 
 /* cover */
 .cover{background:var(--night);color:#fff;position:relative;overflow:hidden}
 .cover::before{content:"VS";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);font:900 340px/1 var(--f-num);font-stretch:125%;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.06);pointer-events:none}
-.cover::after{content:"";position:absolute;right:-80px;top:-40px;width:280px;height:140%;background:var(--accent);transform:skewX(-14deg);opacity:.9;pointer-events:none}
+.cover::after{content:"";position:absolute;right:-60px;top:-40px;width:250px;height:140%;background:linear-gradient(180deg,var(--accent-2),var(--accent));transform:skewX(-14deg);box-shadow:-34px 0 0 -22px var(--accent);pointer-events:none}
+.cover-glow{position:absolute;inset:0;background:radial-gradient(600px 260px at 18% 0,rgba(176,18,45,.28),transparent 70%);pointer-events:none}
 .cover-in{position:relative;z-index:1;padding-block:28px 26px}
 .cv-k{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--night-mute)}
 .cv-k .kicker{color:#fff}
@@ -124,7 +133,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .vs .side .crest{--s:104px;border-radius:0}
 .vs .code{display:block;font:900 92px/0.9 var(--f-num);font-stretch:72%;letter-spacing:-.01em}
 .vs .name{display:block;color:var(--night-mute);font-size:13px;margin-top:6px}
-.vs .side.fo .code{color:#9fb0ff}
+.vs .side.fo .code{color:var(--accent-night)}
 .vs .mid{text-align:center;padding:0 10px}
 .vs .mid b{display:block;font:900 64px/1 var(--f-num);font-stretch:75%;font-variant-numeric:tabular-nums}
 .vs .mid.live b{color:#fff}
@@ -135,10 +144,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .cv-btns{display:flex;gap:8px;flex-wrap:wrap}
 .cover .btn{border-color:rgba(255,255,255,.5);color:#fff}
 .cover .btn:hover{background:#fff;color:var(--night)}
-.cover .btn.acc{background:#fff;color:var(--night);border-color:#fff}
-.cover .btn.acc:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cover .btn.red{background:var(--accent-2);border-color:var(--accent-2);color:#fff}
+.cover .btn.red:hover{background:#fff;color:var(--accent);border-color:#fff}
 @media (max-width:900px){.cover::after{display:none}.vs{gap:10px}.vs .side{gap:12px}.vs .side .crest{--s:60px}.vs .code{font-size:52px}.vs .mid b{font-size:40px}.cover::before{font-size:200px}}
-@media (max-width:600px){.vs .name{display:none}.vs .side{flex-direction:column;align-items:center;text-align:center}.vs .side.b{flex-direction:column;text-align:center}.vs .code{font-size:40px}.vs .side .crest{--s:52px}.vs .mid b{font-size:32px}}
+@media (max-width:600px){.cover-in{padding-block:22px 20px}.cv-btns{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;width:100%}.cv-btns .desk{display:none}.cv-foot{gap:12px}.vs{margin:18px 0}.vs .side .sd{display:none}.vs .name{display:none}.vs .side{flex-direction:column;align-items:center;text-align:center}.vs .side.b{flex-direction:column;text-align:center}.vs .code{font-size:40px}.vs .side .crest{--s:52px}.vs .mid b{font-size:32px}}
 @media (prefers-reduced-motion:reduce){.live-tag::before{animation:none}}
 
 /* follow strip */
@@ -149,7 +158,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .fchip .crest{--s:28px;border-radius:50%}
 .fchip .crest.fo::after{display:none}
 .fchip b{font:800 15px var(--f-num);font-stretch:85%}
-.fchip small{color:var(--mute)}
+.fchip small{color:var(--mute);white-space:nowrap}
 .fchip.out{opacity:.55}
 .add-follow{display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-weight:700;font-size:13px}
 .add-follow:hover{text-decoration:underline}
@@ -161,18 +170,22 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .sec-h .dek{color:var(--ink-2);font-size:14px;max-width:56ch;margin:0;padding-bottom:4px}
 .sec-h .ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding-bottom:2px}
 @media (max-width:900px){.sec-h{grid-template-columns:minmax(0,1fr)}.sec-h h2{font-size:40px}.sec-h .ctrl{justify-content:flex-start}}
+@media (max-width:600px){.panel{padding:32px 0 44px}.sec-h h2{font-size:34px}.sec-h .dek{font-size:13.5px}.sub-h h3{font-size:22px}.followbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.fchip,.add-follow{flex:none}.tm small{display:none}.pips{display:none}table{min-width:600px}th,td{padding:0 10px}}
+.swipe{display:none;font-size:12px;color:var(--mute);margin:-4px 0 8px}
+@media (max-width:900px){.swipe{display:block}}
 .sub-h{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:48px 0 14px}
 .sub-h h3{font:900 26px/1.1 var(--f-head)}
 .sub-h p{margin:4px 0 0;color:var(--mute);font-size:13px;max-width:70ch}
-.tip{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:10px 14px;margin-bottom:16px;background:var(--paper-2);border-left:3px solid var(--ink);font-size:13px;color:var(--ink-2)}
-.tip b{font-weight:700;color:var(--ink)}
+.tip{display:block;padding:10px 14px;margin-bottom:16px;background:var(--paper-2);border-left:3px solid var(--ink);font-size:13px;color:var(--ink-2)}
+.tip b{font-weight:700;color:var(--ink);margin:0 2px}
+.tip > b:first-child{margin:0 10px 0 0}
 .tip.acc{border-left-color:var(--accent);background:var(--accent-soft)}
 .tip.acc b{color:var(--accent)}
 .legend{display:flex;gap:20px;flex-wrap:wrap;align-items:center;color:var(--mute);font-size:12px;margin-bottom:14px}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .legend i{width:22px;height:2px;display:block}
 .legend .w i{background:var(--ink)}
-.legend .l i{background:var(--lose)}
+.legend .l i{background:repeating-linear-gradient(90deg,var(--lose) 0 3px,transparent 3px 7px)}
 .legend .p i{height:12px;width:18px;border:1.5px dashed var(--accent)}
 .legend .hint{margin-left:auto;color:var(--faint)}
 @media (max-width:900px){.legend .hint{margin-left:0}}
@@ -181,15 +194,15 @@ h1,h2,h3{margin:0;text-wrap:balance}
 /* edges */
 svg.edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
 .edges path{fill:none;stroke-width:1.6;opacity:.5;transition:opacity .15s,stroke-width .15s}
-.edges path.w{stroke:var(--ink)}.edges path.l{stroke:var(--lose)}.edges path.n{stroke:var(--rule-2);opacity:1}
+.edges path.w{stroke:var(--ink)}.edges path.l{stroke:var(--lose);stroke-dasharray:3 4}.edges path.n{stroke:var(--rule-2);opacity:1}
 .edges path.on{opacity:.9}
 .edges path.pr{stroke:var(--accent);stroke-dasharray:5 4;opacity:.9}
 .mk-w path{fill:var(--ink)}.mk-l path{fill:var(--lose)}.mk-n path{fill:var(--rule-2)}.mk-g path{fill:var(--accent)}
 
 /* bracket cards */
-.kcard{position:relative;z-index:1;width:100%;background:var(--paper);border:1px solid var(--rule-2);border-radius:6px;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.kcard{position:relative;z-index:1;width:100%;background:var(--paper);border:1px solid var(--rule-2);border-radius:10px;overflow:hidden;transition:transform .15s,box-shadow .15s}
 .kcard:hover{transform:translateY(-1px);box-shadow:0 6px 18px -10px rgba(17,17,20,.35)}
-.kmeta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 12px;font-size:11px;color:var(--mute);border-bottom:1px solid var(--rule);background:var(--paper-2)}
+.kmeta{display:flex;justify-content:space-between;align-items:center;gap:8px;white-space:nowrap;padding:7px 12px;font-size:11px;color:var(--mute);border-bottom:1px solid var(--rule);background:var(--paper-2)}
 .kmeta .st.live{color:var(--live);font-weight:800;letter-spacing:.12em}
 .kmeta .st.pd{color:var(--accent);font-weight:700}
 .kmeta .more{color:var(--ink);font-weight:700}
@@ -197,7 +210,7 @@ svg.edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
 .krow{display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 12px;text-align:left;font:800 18px var(--f-num);font-stretch:82%;letter-spacing:.02em;border-top:1px solid var(--rule)}
 .krow:first-of-type{border-top:0}
 .krow .crest{--s:26px}
-.krow small{font:500 11px var(--f-body);color:var(--faint);letter-spacing:0}
+.krow small{font:700 9.5px var(--f-num);font-stretch:112%;color:var(--mute);letter-spacing:.06em}
 .krow .ks{margin-left:auto;font-size:22px;font-weight:900;font-stretch:75%;font-variant-numeric:tabular-nums;color:var(--faint)}
 button.krow:hover{background:var(--accent-soft)}
 .krow.win .ks{color:var(--ink)}
@@ -212,7 +225,7 @@ button.krow:hover{background:var(--accent-soft)}
 .kscore{display:flex;gap:4px;padding:8px 10px;border-top:1px solid var(--rule)}
 .kscore button{flex:1;padding:4px 0;border-radius:4px;font:800 12.5px var(--f-num);font-stretch:85%;color:var(--mute);box-shadow:inset 0 0 0 1px var(--rule-2)}
 .kscore button[aria-pressed="true"]{color:var(--accent-ink);background:var(--accent);box-shadow:none}
-.goal{position:relative;z-index:1;width:100%;background:var(--night);color:#fff;border-radius:6px;padding:22px 16px 18px;text-align:center}
+.goal{position:relative;z-index:1;width:100%;background:var(--night);color:#fff;border-radius:10px;padding:22px 16px 18px;text-align:center}
 .goal .crest{--s:76px;margin:2px auto 10px}
 .goal .tt{display:block;font:900 34px/1 var(--f-num);font-stretch:75%}
 .goal small{display:block;color:var(--night-mute);font-size:12px;margin-top:6px}
@@ -226,24 +239,25 @@ button.krow:hover{background:var(--accent-soft)}
 .cell{display:flex;flex-direction:column;justify-content:center;gap:14px}
 
 /* swiss */
-.pots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--rule-2);border-radius:6px;overflow:hidden;margin-bottom:28px}
+.pots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--rule-2);border-radius:10px;overflow:hidden;margin-bottom:28px}
 @media (max-width:900px){.pots{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pot{padding:14px 16px;border-left:1px solid var(--rule)}
 .pot:first-child{border-left:0}
 .pot h4{margin:0 0 12px;font:800 12px var(--f-num);font-stretch:118%;letter-spacing:.18em;color:var(--mute)}
 .pot h4 b{color:var(--ink);font-size:20px;font-stretch:75%;letter-spacing:0;margin-right:6px}
 .pot-teams{display:flex;gap:12px;flex-wrap:wrap}
-.pot-teams span{display:flex;flex-direction:column;align-items:center;gap:6px;font:800 13px var(--f-num);font-stretch:85%}
+.pot-teams span{display:flex;flex-direction:column;align-items:center;gap:5px;font:800 13px var(--f-num);font-stretch:85%}
+.pot-teams .sd{font-size:8.5px;padding:1px 3px}
 .pot-teams .crest{--s:40px}
 .flow{position:relative;display:grid;grid-template-columns:repeat(6,190px);column-gap:30px;width:max-content;margin:0 auto}
 .col-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 10px;font-size:11.5px;color:var(--mute)}
 .col-h b{font:800 13px var(--f-num);font-stretch:118%;letter-spacing:.14em;color:var(--ink)}
 .col{display:flex;flex-direction:column;gap:18px;min-height:580px}
-.box{position:relative;z-index:1;background:var(--paper);border:1px solid var(--rule-2);border-radius:6px;overflow:hidden}
+.box{position:relative;z-index:1;background:var(--paper);border:1px solid var(--rule-2);border-radius:10px;overflow:hidden;box-shadow:0 1px 0 rgba(17,17,20,.03)}
 .bh{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--ink);color:#fff}
 .bh b{font:900 20px/1 var(--f-num);font-stretch:75%;letter-spacing:.02em}
 .bh span{font-size:10.5px;color:var(--night-mute);letter-spacing:.04em}
-.bh span.hot{color:#ffd23f}
+.bh span.hot{color:var(--accent-night)}
 .rows{display:flex;flex-direction:column}
 .mrow{display:grid;grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr);align-items:center;height:36px;border-top:1px solid var(--rule);transition:opacity .15s,background .15s}
 .mrow:first-child{border-top:0}
@@ -269,8 +283,8 @@ button.mid{border-radius:4px;background:var(--accent);color:var(--accent-ink)}
 .mrow.ph i.bar{display:block;width:26px;height:4px;border-radius:2px;background:var(--rule)}
 .box.res .bh{background:var(--win)}
 .box.res.elim{background:var(--paper-2);border-color:var(--rule)}
-.box.res.elim .bh{background:var(--paper-3);color:var(--lose)}
-.box.res.elim .bh span{color:var(--lose)}
+.box.res.elim .bh{background:var(--paper-3);color:var(--ink-2)}
+.box.res.elim .bh span{color:var(--mute)}
 .box.res.adv{background:var(--night);border-color:var(--night)}
 .box.res.adv .bh span{color:#fff}
 .slots{display:flex;gap:4px;padding:10px 6px}
@@ -302,11 +316,11 @@ tr.fo td.rk{color:var(--accent)}
 .rec b{font:900 22px var(--f-num);font-stretch:75%;width:30px;font-variant-numeric:tabular-nums}
 .pips{display:flex;gap:3px}
 .pips i{width:8px;height:14px;border-radius:2px;background:var(--paper-3)}
-.pips i.W{background:var(--ink)}.pips i.L{background:var(--lose)}
+.pips i.W{background:var(--ink)}.pips i.L{background:var(--accent)}
 .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--paper-2);color:var(--mute)}
 .pill.adv{background:var(--ink);color:#fff}
-.pill.elim{background:var(--lose-soft);color:var(--lose)}
-.pill.hot{background:#fff3c2;color:#8a5a00}
+.pill.elim{background:var(--paper-3);color:var(--ink-2)}
+.pill.hot{background:var(--accent-soft);color:var(--accent)}
 tr.out td{opacity:.42}
 .prob{display:flex;align-items:center;gap:12px;min-width:190px}
 .track{flex:1;height:6px;background:var(--paper-3);overflow:hidden}
@@ -332,7 +346,7 @@ tr.out td{opacity:.42}
 .day:first-child{padding-top:4px}
 .day.past{opacity:.55}
 .dd b{display:block;font:900 46px/0.95 var(--f-num);font-stretch:72%;font-variant-numeric:tabular-nums}
-.dd small{display:block;color:var(--mute);font-size:12.5px;margin-top:6px}
+.dd small{display:block;color:var(--mute);font-size:12.5px;margin-top:6px;white-space:nowrap}
 .dd .today{display:inline-block;margin-top:8px;background:var(--accent);color:#fff;font:800 10.5px var(--f-num);font-stretch:118%;letter-spacing:.16em;padding:2px 8px}
 .srow{display:grid;grid-template-columns:62px 150px minmax(0,1fr) 80px;gap:14px;align-items:center;width:100%;min-height:54px;padding:6px 10px;text-align:left;border-top:1px solid var(--rule)}
 .srow:first-child{border-top:0}
@@ -350,7 +364,9 @@ tr.out td{opacity:.42}
 .mu .sc{text-align:center;font:900 20px var(--f-num);font-stretch:75%;font-variant-numeric:tabular-nums}
 .mu .sc.v{font-size:12px;color:var(--faint);font-weight:600}
 .mu .sc.live{color:var(--live)}
-.srow .stt{text-align:right;font-size:12px;color:var(--mute)}
+.srow .stt{text-align:right;font-size:12px;color:var(--mute);white-space:nowrap}
+.mu .tt .tn{display:flex;flex-direction:column;align-items:flex-start;gap:3px;line-height:1}
+.mu .tt.b .tn{align-items:flex-end}
 .srow .stt.live{color:var(--live);font-weight:800;letter-spacing:.1em}
 @media (max-width:760px){.day{grid-template-columns:minmax(0,1fr);gap:8px}.dd{display:flex;align-items:baseline;gap:10px}.dd b{font-size:34px}.dd small{margin:0}.srow{grid-template-columns:52px minmax(0,1fr) auto;row-gap:4px}.srow .stg{grid-column:2;grid-row:1}.srow .stt{grid-column:3;grid-row:1}.srow .mu{grid-column:1/-1}}
 
@@ -370,7 +386,7 @@ tr.out td{opacity:.42}
 .dr-sb .t b{display:block;font:900 40px/0.95 var(--f-num);font-stretch:72%}
 .dr-sb .t small{display:block;font-size:11.5px;color:var(--night-mute)}
 .dr-sb .t .star{color:var(--night-mute);font-size:15px;padding:0}
-.dr-sb .t .star[aria-pressed="true"]{color:#9fb0ff}
+.dr-sb .t .star[aria-pressed="true"]{color:var(--accent-night)}
 .dr-sb .s{font:900 54px/1 var(--f-num);font-stretch:72%;font-variant-numeric:tabular-nums;text-align:center}
 .dr-sb .s small{display:block;font:500 11.5px var(--f-body);color:var(--night-mute);margin-top:4px}
 .dr-body{padding:20px 22px 28px}
@@ -424,6 +440,9 @@ tr.out td{opacity:.42}
 .tpick:hover{border-color:var(--ink)}
 .tpick[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 .lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.lg-h{margin:18px 0 10px;font:800 11.5px var(--f-num);font-stretch:118%;letter-spacing:.18em;color:var(--mute)}
+.lg-h:first-child{margin-top:4px}
+.plat{font:600 10.5px var(--f-body);font-style:normal;color:var(--mute);margin-left:8px;padding:1px 6px;border-radius:3px;background:var(--paper-2)}
 .lcard{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:8px;border:1.5px solid var(--rule);text-decoration:none}
 .lcard:hover{border-color:var(--ink)}
 .lic{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;flex:none}
@@ -470,7 +489,7 @@ tr.out td{opacity:.42}
       <button role="tab" data-tab="schedule">赛程</button>
     </nav>
     <div class="tools">
-      <button class="btn ghost" id="open-teams" title="关注战队"><span class="stack" id="follow-stack"></span><span>关注</span></button>
+      <button class="btn ghost" id="open-teams" title="关注战队"><span class="stack" id="follow-stack"></span><span class="star-ic" aria-hidden="true">★</span><span class="lbl-f">关注</span></button>
       <label class="switch" title="为未开赛的比赛做预测"><input type="checkbox" id="pred"><i></i><span>预测</span></label>
       <button class="btn" id="btn-sim" hidden title="按参考实力随机模拟所有未开赛比赛，再点一次换一组结果"><span class="wide">按实力</span>模拟</button>
       <button class="btn ghost" id="open-share" hidden>分享</button>
@@ -479,7 +498,7 @@ tr.out td{opacity:.42}
   </div>
 </header>
 
-<section class="cover"><div class="wrap cover-in" id="cover"></div></section>
+<section class="cover"><div class="cover-glow"></div><div class="wrap cover-in" id="cover"></div></section>
 
 <main class="wrap">
   <div class="followbar" id="followbar"></div>
@@ -489,7 +508,7 @@ tr.out td{opacity:.42}
       <p class="dek">四支队伍双败淘汰，全部 BO5。冠军以第四档身份进入瑞士轮，其余三队结束本届征程。</p><div class="ctrl"></div></div>
     <div id="pi-tip"></div>
     <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span><span class="hint">点击比赛查看详情</span></div>
-    <div class="scroll-x"><div class="pi" id="pi"></div></div>
+    <p class="swipe">← 左右滑动查看完整对阵 →</p><div class="scroll-x"><div class="pi" id="pi"></div></div>
   </section>
 
   <section class="panel" id="p-swiss" role="tabpanel" hidden>
@@ -498,7 +517,7 @@ tr.out td{opacity:.42}
     <div id="pots"></div>
     <div id="sw-tip"></div>
     <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span><span class="hint">悬停队伍看晋级路线 · 点击比赛查看详情</span></div>
-    <div class="scroll-x"><div class="flow" id="flow"></div></div>
+    <p class="swipe">← 左右滑动查看完整流程 →</p><div class="scroll-x"><div class="flow" id="flow"></div></div>
     <div class="sub-h"><div><h3>积分与晋级形势</h3><p id="prob-note"></p></div></div>
     <div class="table-scroll"><table id="stand"></table></div>
   </section>
@@ -507,7 +526,7 @@ tr.out td{opacity:.42}
     <div class="sec-h"><div><span class="kicker">Stage 03 · Knockouts</span><h2>淘汰赛</h2></div>
       <p class="dek">八强、半决赛、决赛全部 BO5。两支 3-0 队伍各抽一支 3-2 队伍并分处两个半区。决赛 11 月 14 日在纽约 Barclays Center。</p><div class="ctrl" id="ko-ctrl"></div></div>
     <div id="ko-tip"></div>
-    <div class="scroll-x"><div class="bracket" id="bracket"></div></div>
+    <p class="swipe">← 左右滑动查看完整对阵 →</p><div class="scroll-x"><div class="bracket" id="bracket"></div></div>
   </section>
 
   <section class="panel" id="p-schedule" role="tabpanel" hidden>
@@ -533,8 +552,8 @@ tr.out td{opacity:.42}
 <div class="modal" id="live" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="live-t">
     <div class="sheet-h"><h2 id="live-t">选择直播间</h2><button data-close aria-label="关闭">×</button></div>
-    <p class="sub">在新标签页打开。可以添加你常看的主播间，保存在本浏览器。</p>
-    <div class="lgrid" id="lgrid"></div>
+    <p class="sub">在新标签页打开。主播二路是主播边看边解说的直播间。也可以在最下面添加你常看的直播间，保存在本浏览器。</p>
+    <div id="lgrid"></div>
     <form class="addform" id="addform">
       <input id="ln" placeholder="直播间名称" maxlength="24" required>
       <input id="lu" placeholder="https://…" type="url" required>
@@ -587,12 +606,13 @@ const TEAMS = {
 };
 const BASE_IDS = Object.keys(TEAMS).filter(id => !TEAMS[id].playin);
 const LIVE = [
-  {name:'哔哩哔哩', short:'B', color:'#fb7299', note:'官方中文直播', url:'https://live.bilibili.com/6'},
-  {name:'虎牙', short:'虎', color:'#ff9600', note:'官方中文直播', url:'https://www.huya.com/lpl'},
-  {name:'斗鱼', short:'鱼', color:'#ff5d23', note:'官方中文直播', url:'https://www.douyu.com/288016'},
-  {name:'Twitch', short:'T', color:'#9146ff', note:'英文官方 riotgames', url:'https://www.twitch.tv/riotgames'},
-  {name:'YouTube', short:'Y', color:'#e5202e', note:'英文官方 lolesports', url:'https://www.youtube.com/@lolesports/live'},
-  {name:'LoL Esports', short:'L', color:'#8a6d33', note:'官网 · 数据与观赛掉宝', url:'https://lolesports.com/'},
+  {name:'哔哩哔哩', plat:'B站', short:'B', color:'#fb7299', note:'官方中文直播', url:'https://live.bilibili.com/6', group:'official'},
+  {name:'虎牙', plat:'虎牙', short:'虎', color:'#ff9600', note:'官方中文直播', url:'https://www.huya.com/lpl', group:'official'},
+  {name:'斗鱼', plat:'斗鱼', short:'鱼', color:'#ff5d23', note:'官方中文直播', url:'https://www.douyu.com/288016', group:'official'},
+  {name:'德云色', plat:'B站', short:'德', color:'#fb7299', note:'B站 7777 · 笑笑二路解说', url:'https://live.bilibili.com/7777', group:'co'},
+  {name:'姿态', plat:'虎牙', short:'姿', color:'#ff9600', note:'虎牙 333003 · Zz1tai姿态', url:'https://www.huya.com/333003', group:'co'},
+  {name:'炫神', plat:'B站', short:'炫', color:'#fb7299', note:'B站 14709735 · 炫神_', url:'https://live.bilibili.com/14709735', group:'co'},
+  {name:'水晶哥', plat:'虎牙', short:'晶', color:'#ff9600', note:'虎牙 222523 · kRYST4L', url:'https://www.huya.com/222523', group:'co'},
 ];
 const PI_ORDER = ['ub1','ub2','ubf','lb1','lbf','f'];
 const PI_LABEL = {ub1:'胜者组首轮', ub2:'胜者组首轮', ubf:'胜者组决赛', lb1:'败者组首轮', lbf:'败者组决赛', f:'入围赛决赛'};
@@ -856,6 +876,11 @@ function drawEdges(root, edges){
 }
 
 /* ---------- shared bits ---------- */
+const SEED = {GEN:'LCK#1', HLE:'LCK#2', T1:'LCK#3', DK:'LCK#4', AL:'LPL#1', BLG:'LPL#2', TES:'LPL#3', IG:'LPL#4', G2:'LEC#1', MKOI:'LEC#2', KC:'LEC#3',
+  TLAW:'LCS#1', LYON:'LCS#2', C9:'LCS#3', TSW:'LCP#1', CFO:'LCP#2', MVK:'LCP#3', LOS:'CBLOL#1', FUR:'CBLOL#2'};
+const seedTag = id => SEED[id] ? `<em class="sd">${SEED[id]}</em>` : '';
+const fCN = ts => fmt(ts, {month:'long', day:'numeric'});
+const fWhen = ts => `<span class="nw">${fCN(ts)} ${fWk(ts)}</span> <span class="nw">${fTime(ts)}</span>`;
 function resolve(m){
   if (m.st === 'pi') { const n = PI_ORDER.find(k => PI_OFF[k] === m), node = MODEL.pi.nodes[n]; return {a: node.a, b: node.b}; }
   return {a: m.a, b: m.b};
@@ -878,12 +903,12 @@ function kcard(m, label, node, seed){
   if (m.official) st = '<span class="st">已结束</span>';
   else if (m.live) st = '<span class="st live">LIVE</span>';
   else if (pred) st = '<span class="st pd">我的预测</span>';
-  else if (m.t) st = `<span class="st">${fMD(m.t)} ${fWk(m.t)} ${fTime(m.t)}</span>`;
+  else if (m.t) st = `<span class="st">${fCN(m.t)} ${fWk(m.t)} ${fTime(m.t)}</span>`;
   if (can && openable) st += ` <button class="more" data-detail="${oid}">详情</button>`;
   const row = id => {
     if (!id) return `<div class="krow ph">${crest(null)}待定</div>`;
     const cls = (m.res ? (m.res.w === id ? 'win' : 'lose') : '') + (isF(id) ? ' fo' : '');
-    const inner = `${crest(id)}${short(id)}<small>${seed && seed[id] || ''}</small><span class="ks">${gamesOf(m, id)}</span>`;
+    const inner = `${crest(id)}${short(id)}<small>${[SEED[id], seed && seed[id]].filter(Boolean).join(' · ')}</small><span class="ks">${gamesOf(m, id)}</span>`;
     return can ? `<button class="krow ${cls}" data-key="${m.key}" data-team="${id}" data-bo="5" aria-label="预测 ${id} 获胜">${inner}</button>` : `<div class="krow ${cls}">${inner}</div>`;
   };
   const score = can && m.res ? `<div class="kscore">${['3-0','3-1','3-2'].map(s => `<button data-setscore="${m.key}" data-s="${s}" aria-pressed="${m.res.s === s}">${s.replace('-', ':')}</button>`).join('')}</div>` : '';
@@ -916,12 +941,12 @@ function renderCover(){
   const nx = nextMatch();
   if (!nx) { $('cover').innerHTML = '<div class="cv-k"><span class="kicker">S16</span>全部比赛已结束</div>'; return; }
   const {a, b} = resolve(nx);
-  const side = (id, cls) => `<div class="side ${cls} ${isF(id) ? 'fo' : ''}">${crest(id, 'bare')}<div><b class="code">${id ? short(id) : '待定'}</b><span class="name">${id ? esc(nameOf(id)) : '等待上一场结果'}</span></div></div>`;
-  const mid = nx.live ? `<div class="mid live"><b>${nx.ga}:${nx.gb}</b><small>BO${nx.bo} · 正在进行</small></div>` : `<div class="mid"><b>${fTime(nx.t)}</b><small>${fMD(nx.t)} ${fWk(nx.t)} · ${tzLabel()}</small></div>`;
+  const side = (id, cls) => `<div class="side ${cls} ${isF(id) ? 'fo' : ''}">${crest(id, 'bare')}<div><b class="code">${id ? short(id) : '待定'}</b><span class="name">${id ? esc(nameOf(id)) + ' ' + seedTag(id) : '等待上一场结果'}</span></div></div>`;
+  const mid = nx.live ? `<div class="mid live"><b>${nx.ga}:${nx.gb}</b><small>BO${nx.bo} · 正在进行</small></div>` : `<div class="mid"><b>${fTime(nx.t)}</b><small><span class="nw">${fCN(nx.t)} ${fWk(nx.t)}</span> <span class="nw">${tzLabel()}</span></small></div>`;
   const k = nx.live ? '<span class="live-tag">LIVE</span>' : '<span class="kicker">Next match · 下一场</span>';
   $('cover').innerHTML = `<div class="cv-k">${k}<span>${stageLabel(nx)}${nx.st === 'pi' ? ' · BO5' : ''}</span></div>
     <div class="vs">${side(a, 'a')}${mid}${side(b, 'b')}</div>
-    <div class="cv-foot"><span class="cd" id="cd"></span><div class="cv-btns">${LIVE.slice(0, 3).map((l, i) => `<a class="btn ${i === 0 ? 'acc' : ''}" href="${l.url}" target="_blank" rel="noopener">${i === 0 ? '▶ ' : ''}${l.name}</a>`).join('')}<button class="btn" data-open="live">更多直播</button>${a && b ? `<button class="btn" data-detail="${nx.id}">比赛详情</button>` : ''}</div></div>`;
+    <div class="cv-foot"><span class="cd" id="cd"></span><div class="cv-btns"><button class="btn red" data-open="live">▶ 观看直播</button>${LIVE.filter(l => l.group === 'official').map(l => `<a class="btn desk" href="${l.url}" target="_blank" rel="noopener">${l.name}</a>`).join('')}${a && b ? `<button class="btn" data-detail="${nx.id}">比赛详情</button>` : ''}</div></div>`;
   tick();
 }
 function tick(){
@@ -952,13 +977,13 @@ function renderFollow(){
   $('followbar').innerHTML = '<span class="lbl">关注</span>' + S.follow.map(id => {
     const nx = teamNext(id), out = teamOut(id);
     let txt, attr = '';
-    if (nx) { const r = resolve(nx), opp = r.a === id ? r.b : r.a; txt = (nx.live ? '<b style="color:var(--live)">LIVE</b> ' : `${fMD(nx.t)} ${fTime(nx.t)} · `) + `对阵 ${opp ? short(opp) : '待定'}`; if (r.a && r.b) attr = `data-detail="${nx.id}"`; }
+    if (nx) { const r = resolve(nx), opp = r.a === id ? r.b : r.a; txt = (nx.live ? '<b style="color:var(--live)">LIVE</b> ' : `${fCN(nx.t)} ${fTime(nx.t)} · `) + `对阵 ${opp ? short(opp) : '待定'}`; if (r.a && r.b) attr = `data-detail="${nx.id}"`; }
     else txt = out || (TEAMS[id].playin ? '等待入围赛结果' : '等待抽签');
-    return `<button class="fchip ${!nx && out ? 'out' : ''}" ${attr}>${crest(id)}<span><b>${id}</b> <small>${txt}</small></span></button>`;
+    return `<button class="fchip ${!nx && out ? 'out' : ''}" ${attr}>${crest(id)}<span><b>${id}</b> ${seedTag(id)} <small>${txt}</small></span></button>`;
   }).join('') + '<button class="add-follow" data-open="teams">管理</button>';
 }
 function renderTeamPicker(){
-  $('tgrid').innerHTML = PICKABLE.map(id => `<button class="tpick" data-follow="${id}" aria-pressed="${isF(id)}">${crest(id)}${id}<small>${TEAMS[id].region}</small></button>`).join('');
+  $('tgrid').innerHTML = PICKABLE.map(id => `<button class="tpick" data-follow="${id}" aria-pressed="${isF(id)}">${crest(id)}${id}${seedTag(id)}</button>`).join('');
 }
 function toggleFollow(id){
   S.follow = isF(id) ? S.follow.filter(x => x !== id) : S.follow.concat(id);
@@ -1022,7 +1047,7 @@ function renderPots(M){
   if (M.byR[1]) { $('pots').innerHTML = ''; return; }
   const tiers = [1, 2, 3, 4].map(k => M.ids.filter(id => TEAMS[id].tier === k));
   $('pots').innerHTML = `<div class="sub-h" style="margin-top:0"><div><h3>首轮抽签分档</h3><p>入围赛决赛结束后立即抽签（美国时间 10 月 18 日，约北京时间 10 月 19 日早上，具体时间官方未公布）。第一档对第四档、第二档对第三档，同赛区回避。官方抽签公布后，下方流程图会换成真实对阵。</p></div></div><div class="pots">` +
-    tiers.map((ts, i) => `<div class="pot"><h4><b>0${i + 1}</b>第${'一二三四'[i]}档</h4><div class="pot-teams">${ts.map(id => `<span title="${esc(nameOf(id))}">${crest(id)}${short(id)}</span>`).join('')}</div></div>`).join('') + '</div>';
+    tiers.map((ts, i) => `<div class="pot"><h4><b>0${i + 1}</b>第${'一二三四'[i]}档</h4><div class="pot-teams">${ts.map(id => `<span title="${esc(nameOf(id))}">${crest(id)}${short(id)}${seedTag(id)}</span>`).join('')}</div></div>`).join('') + '</div>';
 }
 function renderFlow(M){
   const byBox = {};
@@ -1084,7 +1109,7 @@ function renderStand(M){
   $('stand').innerHTML = '<thead><tr><th>#</th><th>队伍</th><th>战绩</th><th>状态</th><th>晋级概率</th><th style="text-align:right">夺冠</th><th></th></tr></thead><tbody>' +
     rows.map((x, i) => { const [c, t] = status(x.r); return `<tr class="${x.r.l === 3 ? 'out' : ''} ${isF(x.id) ? 'fo' : ''}">
       <td class="rk">${String(i + 1).padStart(2, '0')}</td>
-      <td><div class="tm">${crest(x.id)}<b>${short(x.id)}</b><small>${esc(nameOf(x.id))}${reg(x.id) ? ' · ' + reg(x.id) : ''}</small></div></td>
+      <td><div class="tm">${crest(x.id)}<b>${short(x.id)}</b>${seedTag(x.id)}<small>${esc(nameOf(x.id))}</small></div></td>
       <td><div class="rec"><b>${x.r.w}-${x.r.l}</b><span class="pips">${[0,1,2,3,4].map(k => `<i class="${x.r.h[k] || ''}"></i>`).join('')}</span></div></td>
       <td><span class="pill ${c}">${t}</span></td>
       <td><div class="prob"><div class="track"><i style="width:${x.s ? x.s.adv * 100 : 0}%"></i></div><span>${pct(x.s && x.s.adv)}</span></div></td>
@@ -1136,7 +1161,7 @@ function renderSchedule(){
     const past = d.ms.every(m => m.res) && d.k < today;
     return `<div class="day ${past ? 'past' : ''}"><div class="dd"><b>${fMD(d.t).replace('/', '.')}</b><small>${fWk(d.t)} · ${d.ms.length} 场</small>${d.k === today ? '<span class="today">TODAY</span>' : ''}</div><div>${d.ms.map(m => {
       const {a, b} = resolve(m), w = m.res && m.res.w;
-      const t = (id, s) => `<span class="tt ${s} ${w && w !== id ? 'l' : ''} ${isF(id) ? 'fo' : ''}">${crest(id)}${id ? short(id) : '<span class="tbd">待定</span>'}</span>`;
+      const t = (id, s) => `<span class="tt ${s} ${w && w !== id ? 'l' : ''} ${isF(id) ? 'fo' : ''}">${crest(id)}${id ? `<span class="tn">${short(id)}${seedTag(id)}</span>` : '<span class="tbd">待定</span>'}</span>`;
       const mid = m.live ? `<span class="sc live">${m.ga}:${m.gb}</span>` : m.res ? `<span class="sc">${scoreAB(m)}</span>` : '<span class="sc v">VS</span>';
       const st = m.live ? '<span class="stt live">LIVE</span>' : m.res ? '<span class="stt">已结束</span>' : `<span class="stt">BO${m.bo}</span>`;
       const attrs = a && b ? `data-detail="${m.id}"` : 'disabled';
@@ -1230,22 +1255,22 @@ function gamePanel(m, g, d){
     const img = DD.ver ? `<img src="https://ddragon.leagueoflegends.com/cdn/${DD.ver}/img/champion/${p.championId}.png" alt="" onerror="this.style.visibility='hidden'">` : '<span class="noimg"></span>';
     return `<div class="pl ${cls}">${img}<div><b>${esc(name)}</b><small>${esc(DD.champs[p.championId] || p.championId)}</small></div><span class="kda">${s.kills ?? '–'}/${s.deaths ?? '–'}/${s.assists ?? '–'}<small><br>${s.creepScore ?? '–'} 刀</small></span></div>`;
   };
-  const vod = (() => { const v = g.vods.find(x => x.provider === 'youtube' && x.locale === 'zh-TW') || g.vods.find(x => x.provider === 'youtube' && x.locale === 'en-US') || g.vods.find(x => x.provider === 'youtube'); return v ? `https://www.youtube.com/watch?v=${v.parameter}&t=${Math.floor((v.startMillis || 0) / 1000)}s` : null; })();
+  const vod = `https://search.bilibili.com/all?keyword=${encodeURIComponent(`S16 ${a} vs ${b} 第${g.n}局`)}`;
   const stateTxt = done ? `${winner} 获胜` : '进行中 · 每 10 秒刷新';
   return `<div class="ghead"><h4>第 ${g.n} 局</h4><span class="meta">${a} ${sideCn(a)} · ${b} ${sideCn(b)} · <b style="color:${done ? 'var(--ink)' : 'var(--live)'}">${stateTxt}</b></span></div>
     <div class="tape">${tape}</div>
     <div class="lineup">${ROLES.map(([r, cn]) => `<div class="lrow">${pl(a, r, 'a')}<span class="role">${cn}</span>${pl(b, r, 'b')}</div>`).join('')}</div>
-    ${vod && done ? `<div class="dr-btns"><a class="btn solid" href="${vod}" target="_blank" rel="noopener">▶ 看这一局回放</a></div>` : ''}`;
+    ${done ? `<div class="dr-btns"><a class="btn solid" href="${vod}" target="_blank" rel="noopener">▶ 在 B站找这一局回放</a></div>` : ''}`;
 }
 function renderDrawer(){
   if (!DR) return;
   const m = MATCHES.find(x => x.id === DR.id); if (!m) return closeDetail();
   const {a, b} = resolve(m);
-  const team = (id, cls) => `<div class="t ${cls}">${crest(id, 'bare')}<div><b>${id ? short(id) : '待定'}</b><small>${id ? esc(nameOf(id)) : ''}</small>${id && id !== 'PIW' ? `<button class="star" data-follow="${id}" aria-pressed="${isF(id)}">${isF(id) ? '★ 已关注' : '☆ 关注'}</button>` : ''}</div></div>`;
+  const team = (id, cls) => `<div class="t ${cls}">${crest(id, 'bare')}<div><b>${id ? short(id) : '待定'}</b><small>${id ? esc(nameOf(id)) : ''} ${seedTag(id)}</small>${id && id !== 'PIW' ? `<button class="star" data-follow="${id}" aria-pressed="${isF(id)}">${isF(id) ? '★ 已关注' : '☆ 关注'}</button>` : ''}</div></div>`;
   const sc = m.live ? `${m.ga}:${m.gb}<small style="color:var(--live)">LIVE</small>` : m.res ? `${scoreAB(m)}<small>已结束</small>` : `VS<small>${fTime(m.t)} 开赛</small>`;
   let body;
   if (m.state === 'unstarted' && !m.live) {
-    body = `<div class="dr-empty">比赛将于 ${fMD(m.t)} ${fWk(m.t)} ${fTime(m.t)}（${tzLabel()}）开始，BO${m.bo}。<br>开赛后这里会显示每一局的实时数据。</div><div class="dr-btns" style="justify-content:center">${LIVE.slice(0, 3).map((l, i) => `<a class="btn ${i === 0 ? 'solid' : ''}" href="${l.url}" target="_blank" rel="noopener">${l.name}</a>`).join('')}</div>`;
+    body = `<div class="dr-empty">比赛将于 ${fWhen(m.t)}（${tzLabel()}）开始，BO${m.bo}。<br>开赛后这里会显示每一局的实时数据。</div><div class="dr-btns" style="justify-content:center"><button class="btn red" data-open="live">直播间</button><button class="btn" data-open="teams">关注战队</button></div>`;
   } else if (DR.loading) body = '<div class="dr-empty">正在读取比赛数据…</div>';
   else if (DR.err) body = '<div class="dr-empty">没能读取到官方比赛数据。<br>当前环境可能无法联网（例如在 Claude 预览里），请在正式网站打开，或稍后再试。</div>';
   else {
@@ -1254,18 +1279,20 @@ function renderDrawer(){
     let panel;
     if (!g || g.state === 'unstarted') panel = '<div class="dr-empty">这一局还没开始。</div>';
     else { const d = DR.cache[g.id]; panel = !d ? '<div class="dr-empty">正在读取第 ' + g.n + ' 局数据…</div>' : d.err ? '<div class="dr-empty">这一局的数据暂时读取失败，稍后再试。</div>' : d.none ? '<div class="dr-empty">这一局暂时没有数据。</div>' : gamePanel(m, g, d); }
-    body = tabs + panel + (m.live ? `<div class="dr-btns">${LIVE.slice(0, 3).map((l, i) => `<a class="btn ${i === 0 ? 'acc' : ''}" href="${l.url}" target="_blank" rel="noopener">${i === 0 ? '▶ ' : ''}${l.name}</a>`).join('')}</div>` : '');
+    body = tabs + panel + (m.live ? `<div class="dr-btns"><button class="btn red" data-open="live">▶ 观看直播</button>${LIVE.filter(l => l.group === 'official').map(l => `<a class="btn" href="${l.url}" target="_blank" rel="noopener">${l.name}</a>`).join('')}</div>` : '');
   }
   $('drawer').innerHTML = `<div class="dr-top"><button class="dr-close" data-close-detail aria-label="关闭">×</button>
-      <div class="dr-k">${m.live ? '<span class="live-tag">LIVE</span>' : '<span class="kicker" style="color:#9fb0ff">Match Center</span>'}<span>${stageLabel(m)} · ${fMD(m.t)} ${fWk(m.t)} ${fTime(m.t)}</span></div>
+      <div class="dr-k">${m.live ? '<span class="live-tag">LIVE</span>' : '<span class="kicker" style="color:var(--accent-night)">Match Center</span>'}<span>${stageLabel(m)} · ${fWhen(m.t)}</span></div>
       <div class="dr-sb">${team(a, 'a')}<div class="s">${sc}</div>${team(b, 'b')}</div></div>
     <div class="dr-body">${body}</div>`;
 }
 
 /* ---------- live links / share ---------- */
 function renderLive(){
-  const all = LIVE.concat(S.links.map((l, i) => ({name:l.name, short:l.name.slice(0, 1), color:'#3a3a44', note:'自定义', url:l.url, own:i})));
-  $('lgrid').innerHTML = all.map(l => `<a class="lcard" href="${esc(l.url)}" target="_blank" rel="noopener"><span class="lic" style="background:${l.color}">${esc(l.short)}</span><div><b>${esc(l.name)}</b><small>${esc(l.note)}</small></div>${l.own !== undefined ? `<button class="x" data-del="${l.own}" aria-label="删除">×</button>` : ''}</a>`).join('');
+  const all = LIVE.concat(S.links.map((l, i) => ({name:l.name, short:l.name.slice(0, 1), color:'#3a3a44', note:l.url.replace(/^https?:\/\//, ''), url:l.url, own:i})));
+  const card = l => `<a class="lcard" href="${esc(l.url)}" target="_blank" rel="noopener"><span class="lic" style="background:${l.color}">${esc(l.short)}</span><div><b>${esc(l.name)}${l.plat ? `<em class="plat">${esc(l.plat)}</em>` : ''}</b><small>${esc(l.note)}</small></div>${l.own !== undefined ? `<button class="x" data-del="${l.own}" aria-label="删除">×</button>` : ''}</a>`;
+  const grp = (t, list) => list.length ? `<h4 class="lg-h">${t}</h4><div class="lgrid">${list.map(card).join('')}</div>` : '';
+  $('lgrid').innerHTML = grp('官方直播', all.filter(l => l.group === 'official')) + grp('主播二路', all.filter(l => l.group === 'co')) + grp('我添加的', all.filter(l => l.own !== undefined));
 }
 function predSummary(M){
   const rec = M.sw.rec;

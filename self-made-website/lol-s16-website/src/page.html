@@ -416,6 +416,13 @@ tr.out td{opacity:.42}
 .role{text-align:center;font:800 10px var(--f-num);font-stretch:118%;letter-spacing:.14em;color:var(--faint)}
 .dr-empty{padding:26px 0;text-align:center;color:var(--mute);font-size:13px}
 .dr-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.dr-live{margin-top:24px;padding-top:16px;border-top:2px solid var(--ink)}
+.dr-live h5{margin:0 0 12px;font:900 18px var(--f-head)}
+.rooms{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.rooms-h{width:64px;flex:none;font-size:12px;font-weight:700;color:var(--mute)}
+.btn.ghost-b{border-color:var(--rule-2);font-weight:600}
+.btn.ghost-b:hover{border-color:var(--ink);background:var(--paper);color:var(--ink)}
+@media (max-width:600px){.rooms-h{width:100%}}
 
 /* sheets */
 .modal{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));background:rgba(14,14,17,.5)}
@@ -650,7 +657,7 @@ async function refreshLive(){
   try {
     const d = await fetchSchedule();
     if (d.matches.length < 10) throw new Error('empty');
-    ingest(d); LIVE_DATA = true; DATA_AT = Date.now(); renderAll();
+    ingest(d); LIVE_DATA = true; DATA_AT = Date.now(); renderAll(); syncStage();
     setTimeout(refreshLive, MATCHES.some(m => m.live) ? 30e3 : 120e3);
   } catch (e) {
     if (LIVE_DATA) setTimeout(refreshLive, 60e3);
@@ -755,7 +762,8 @@ function runSwiss(ids, byR, getResult, mkR1, pairRng){
     const active = ids.filter(id => rec[id].w < 3 && rec[id].l < 3);
     if (!active.length) break;
     let pairs;
-    if (byR[r] && byR[r].length) pairs = byR[r].map(o => ({a: o.a, b: o.b, o}));
+    const offPairs = (byR[r] || []).filter(o => rec[o.a] && rec[o.b] && o.a !== o.b);
+    if (offPairs.length) pairs = offPairs.map(o => ({a: o.a, b: o.b, o}));
     else if (r === 1) {
       const p = mkR1 ? mkR1() : null;
       if (!p) { complete = false; awaitingDraw = true; break; }
@@ -882,6 +890,12 @@ function predTip(open, closedMsg){
   return S.pred
     ? '<div class="tip acc"><b>预测已开启</b>点击未开赛比赛中的队伍选出胜者，再点一次取消。顶部「按实力模拟」可以一键补完，每点一次换一组结果。</div>'
     : `<div class="tip">${closedMsg} 想猜结果？打开右上角的<b>预测</b>开关。</div>`;
+}
+
+function roomRows(){
+  const btn = (l, cls) => `<a class="btn ${cls}" href="${l.url}" target="_blank" rel="noopener">${l.name}</a>`;
+  return `<div class="rooms"><span class="rooms-h">官方直播</span>${LIVE.filter(l => l.group === 'official').map(l => btn(l, '')).join('')}</div>
+    <div class="rooms"><span class="rooms-h">主播二路</span>${LIVE.filter(l => l.group === 'co').map(l => btn(l, 'ghost-b')).join('')}${S.links.map(l => btn(l, 'ghost-b')).join('')}</div>`;
 }
 
 /* ---------- bracket card ---------- */
@@ -1260,7 +1274,7 @@ function renderDrawer(){
   const sc = m.live ? `${m.ga}:${m.gb}<small style="color:var(--live)">LIVE</small>` : m.res ? `${scoreAB(m)}<small>已结束</small>` : `VS<small>${fTime(m.t)} 开赛</small>`;
   let body;
   if (m.state === 'unstarted' && !m.live) {
-    body = `<div class="dr-empty">比赛将于 ${fWhen(m.t)}（${tzLabel()}）开始，BO${m.bo}。<br>开赛后这里会显示每一局的实时数据。</div><div class="dr-btns" style="justify-content:center"><button class="btn red" data-open="live">直播间</button><button class="btn" data-open="teams">关注战队</button></div>`;
+    body = `<div class="dr-empty">比赛将于 ${fWhen(m.t)}（${tzLabel()}）开始，BO${m.bo}。<br>开赛后这里会显示每一局的实时数据。</div><div class="dr-live"><h5>开赛后去这里看</h5>${roomRows()}</div>`;
   } else if (DR.loading) body = '<div class="dr-empty">正在读取比赛数据…</div>';
   else if (DR.err) body = '<div class="dr-empty">没能读取到官方比赛数据。<br>当前环境可能无法联网（例如在 Claude 预览里），请在正式网站打开，或稍后再试。</div>';
   else {
@@ -1269,7 +1283,7 @@ function renderDrawer(){
     let panel;
     if (!g || g.state === 'unstarted') panel = '<div class="dr-empty">这一局还没开始。</div>';
     else { const d = DR.cache[g.id]; panel = !d ? '<div class="dr-empty">正在读取第 ' + g.n + ' 局数据…</div>' : d.err ? '<div class="dr-empty">这一局的数据暂时读取失败，稍后再试。</div>' : d.none ? '<div class="dr-empty">这一局暂时没有数据。</div>' : gamePanel(m, g, d); }
-    body = tabs + panel + (m.live ? `<div class="dr-btns"><button class="btn red" data-open="live">▶ 观看直播</button>${LIVE.filter(l => l.group === 'official').map(l => `<a class="btn" href="${l.url}" target="_blank" rel="noopener">${l.name}</a>`).join('')}</div>` : '');
+    body = (m.live ? `<div class="dr-live" style="margin:0 0 22px;padding-top:0;border:0"><h5><span class="live-tag" style="margin-right:8px">LIVE</span>正在直播</h5>${roomRows()}</div>` : '') + tabs + panel;
   }
   $('drawer').innerHTML = `<div class="dr-top"><button class="dr-close" data-close-detail aria-label="关闭">×</button>
       <div class="dr-k">${m.live ? '<span class="live-tag">LIVE</span>' : '<span class="kicker" style="color:var(--accent-night)">Match Center</span>'}<span>${stageLabel(m)} · ${fWhen(m.t)}</span></div>
@@ -1351,10 +1365,18 @@ function simulateRest(){
   save(); renderAll(); toast('已按实力模拟全部未开赛比赛，再点一次换一组结果');
 }
 function currentStage(){
-  const now = Date.now(), last = st => Math.max(...MATCHES.filter(m => m.st === st).map(m => m.t));
-  if (now < last('pi') + 6 * 3600e3) return 'pi';
-  if (now < last('swiss') + 6 * 3600e3) return 'swiss';
+  const open = sts => MATCHES.some(m => sts.includes(m.st) && !m.res);
+  if (open(['pi'])) return 'pi';
+  if (open(['swiss'])) return 'swiss';
   return 'ko';
+}
+let STAGE_NOW = 'pi', userTab = false;
+function syncStage(){
+  const st = currentStage();
+  document.querySelectorAll('#tabs .now').forEach(n => n.remove());
+  document.querySelector(`#tabs [data-tab="${st}"]`).insertAdjacentHTML('beforeend', '<i class="now" title="当前阶段"></i>');
+  const changed = st !== STAGE_NOW; STAGE_NOW = st;
+  if (changed && !userTab) setTab(st);
 }
 function setTab(t){
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
@@ -1383,7 +1405,7 @@ document.addEventListener('click', e => {
   if (t.closest('[data-close-detail]') || t === $('scrim')) { closeDetail(); return; }
   const dt = t.closest('[data-detail]'); if (dt) { openDetail(dt.dataset.detail); return; }
   const fl = t.closest('[data-filter]'); if (fl) { S.onlyFollow = fl.dataset.filter === '1'; save(); renderSchedule(); return; }
-  const tab = t.closest('[data-tab]'); if (tab) { e.preventDefault(); setTab(tab.dataset.tab === 'cur' ? STAGE_NOW : tab.dataset.tab); return; }
+  const tab = t.closest('[data-tab]'); if (tab) { e.preventDefault(); const to = tab.dataset.tab === 'cur' ? STAGE_NOW : tab.dataset.tab; userTab = to !== STAGE_NOW; setTab(to); return; }
   const op = t.closest('[data-open]'); if (op) { openModal(op.dataset.open); return; }
   const del = t.closest('[data-del]'); if (del) { e.preventDefault(); S.links.splice(+del.dataset.del, 1); save(); renderLive(); return; }
   if (t.closest('[data-close]') || t.classList.contains('modal')) { closeModals(); return; }
@@ -1429,11 +1451,10 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
 
 /* ---------- boot ---------- */
 $('tz').value = S.tz;
-const STAGE_NOW = currentStage();
-document.querySelector(`#tabs [data-tab="${STAGE_NOW}"]`).insertAdjacentHTML('beforeend', '<i class="now" title="当前阶段"></i>');
 renderAll();
 const hashTab = location.hash.slice(1);
-setTab(['pi', 'swiss', 'ko', 'schedule'].includes(hashTab) ? hashTab : STAGE_NOW);
+STAGE_NOW = currentStage(); syncStage();
+if (['pi', 'swiss', 'ko', 'schedule'].includes(hashTab)) { userTab = hashTab !== STAGE_NOW; setTab(hashTab); } else setTab(STAGE_NOW);
 setInterval(tick, 1000);
 refreshLive();
 </script>

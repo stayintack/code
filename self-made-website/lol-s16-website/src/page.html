@@ -1,0 +1,1069 @@
+<title>S16 观赛台</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one dark arena surface. Next-match hero + latest results, then the current stage drawn as a
+   left-to-right flowchart (cards joined by win/loss arrows). Real results are solid; optional predictions are gold. */
+:root{
+  --bg:#090c12; --panel:#0f141c; --panel-2:#151b26; --hover:#1c2331;
+  --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.14);
+  --fg:#eef1f5; --muted:#8a93a3; --faint:#5a6476;
+  --gold:#d2ac60; --gold-soft:rgba(210,172,96,.14); --gold-ink:#17120a;
+  --win:#3cc79b; --win-soft:rgba(60,199,155,.13); --lose:#ec6169; --lose-soft:rgba(236,97,105,.12);
+  --f-tag:"Saira Semi Condensed","Noto Sans SC",system-ui,sans-serif;
+  --f-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{background:radial-gradient(1100px 420px at 50% -240px,rgba(210,172,96,.08),transparent 70%),var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.55;min-height:100vh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:1400px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+@media (max-width:600px){.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:.01em;text-wrap:balance}
+h1{font-size:26px}
+h2{font-size:18px}
+h3{font-size:13px;font-weight:500;color:var(--muted)}
+.sub{margin:4px 0 0;color:var(--muted);font-size:13px;max-width:70ch}
+.lg{width:22px;height:22px;object-fit:contain;flex:none;display:block}
+.mono{width:22px;height:22px;border-radius:50%;border:1px dashed var(--line-2);display:grid;place-items:center;font:600 11px var(--f-tag);color:var(--muted);flex:none}
+.ghost{width:20px;height:20px;border-radius:50%;border:1px dashed var(--line-2);flex:none;display:block}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(9,12,18,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:28px;height:60px}
+.brand{display:flex;align-items:center;gap:9px;flex:none}
+.brand svg{width:22px;height:22px;color:var(--gold)}
+.brand b{font-family:var(--f-tag);font-size:19px;font-weight:700;letter-spacing:.06em}
+.brand b span{color:var(--gold)}
+.tabs{display:flex;gap:2px;height:100%}
+.tabs button{position:relative;padding:0 14px;color:var(--muted);font-weight:500;height:100%;white-space:nowrap}
+.tabs button:hover{color:var(--fg)}
+.tabs button[aria-selected="true"]{color:var(--fg)}
+.tabs button[aria-selected="true"]::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:var(--gold);border-radius:2px}
+.tabs button .now{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--lose);margin-left:6px;vertical-align:2px}
+.tools{margin-left:auto;display:flex;align-items:center;gap:10px}
+.switch{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--muted);user-select:none;white-space:nowrap}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch i{width:34px;height:20px;border-radius:999px;background:var(--panel-2);box-shadow:inset 0 0 0 1px var(--line-2);position:relative;transition:background .15s}
+.switch i::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.switch input:checked + i{background:var(--gold);box-shadow:none}
+.switch input:checked + i::after{transform:translateX(14px);background:var(--gold-ink)}
+.switch input:focus-visible + i{outline:2px solid var(--gold);outline-offset:2px}
+.switch input:checked ~ span{color:var(--gold)}
+.pill-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid var(--line-2);font-size:13px;font-weight:500;white-space:nowrap;text-decoration:none}
+.pill-btn:hover{border-color:var(--fg)}
+.pill-btn.gold{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.pill-btn.gold:hover{filter:brightness(1.07)}
+.pill-btn.quiet{border-color:transparent;color:var(--muted)}
+.pill-btn.quiet:hover{color:var(--fg)}
+.pill-btn.danger{border-color:var(--lose);color:var(--lose)}
+@media (max-width:600px){.wide{display:none}.tools .pill-btn{padding:6px 11px}.switch span{display:none}}
+@media (max-width:820px){
+  .top-in{height:auto;flex-wrap:wrap;gap:0 12px;padding-top:10px}
+  .tabs{order:3;width:100%;height:44px;overflow-x:auto;scrollbar-width:none}
+  .tabs button{padding:0 12px}
+  .tools{gap:8px}
+}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px;margin:20px 0 0}
+@media (max-width:900px){.hero{grid-template-columns:minmax(0,1fr)}}
+.card{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:18px 20px}
+.next{display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(420px 200px at 50% 0,rgba(210,172,96,.10),transparent),var(--panel)}
+.nx-k{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;flex-wrap:wrap}
+.badge{font:700 11px var(--f-tag);letter-spacing:.14em;padding:2px 8px;border-radius:4px;background:var(--panel-2);color:var(--muted)}
+.badge.live{background:var(--lose);color:#fff;display:inline-flex;align-items:center;gap:6px}
+.badge.live::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.badge.live::before{animation:none}}
+.nx-teams{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px;margin:18px 0 16px}
+.nx-team{display:flex;align-items:center;gap:14px;font:700 24px var(--f-tag);letter-spacing:.03em;min-width:0}
+.nx-team.b{flex-direction:row-reverse}
+.nx-team .lg,.nx-team .mono,.nx-team .ghost{width:52px;height:52px}
+.nx-team small{display:block;font:400 12px var(--f-body);color:var(--muted);letter-spacing:0}
+.nx-team.b div{text-align:right}
+.nx-mid{text-align:center}
+.nx-mid b{display:block;font:600 30px var(--f-tag);font-variant-numeric:tabular-nums;line-height:1.1}
+.nx-mid small{color:var(--muted);font-size:12px}
+.nx-mid.live b{color:var(--lose)}
+@media (max-width:600px){.nx-team{font-size:18px;gap:8px}.nx-team .lg,.nx-team .mono,.nx-team .ghost{width:38px;height:38px}.nx-team small{display:none}.nx-mid b{font-size:22px}.nx-mid small{display:block;font-size:11px;max-width:80px;margin:0 auto}.nx-teams{gap:8px}}
+.nx-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px}
+.cd{font-family:var(--f-tag);font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.cd b{color:var(--fg);font-size:18px;font-weight:600;margin:0 2px}
+.watch-row{display:flex;gap:8px;flex-wrap:wrap}
+.recent h3{margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.fresh{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--faint);font-weight:400}
+.fresh.on{color:var(--win)}
+.fresh.on::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--win)}
+.rrow{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.rrow:first-of-type{border-top:0}
+.rrow .when{font-size:11.5px;color:var(--faint);line-height:1.35}
+.rline{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);align-items:center}
+.rt{display:flex;align-items:center;gap:8px;font:600 14px var(--f-tag);min-width:0}
+.rt.b{flex-direction:row-reverse}
+.rt.l{opacity:.4}
+.rs{text-align:center;font:600 15px var(--f-tag);font-variant-numeric:tabular-nums}
+
+/* panels */
+.panel{padding:30px 0 40px}
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.ph.second{margin:44px 0 14px}
+.ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.legend{display:flex;gap:18px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:12px;margin-bottom:12px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:18px;height:2px;border-radius:2px;display:block}
+.legend .w i{background:var(--win)}.legend .l i{background:var(--lose)}
+.legend .p i{height:10px;width:16px;border-radius:3px;background:var(--gold-soft);outline:1px dashed var(--gold);outline-offset:-1px}
+.legend .hint{margin-left:auto;color:var(--faint)}
+@media (max-width:820px){.legend .hint{margin-left:0}}
+.pred-tip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;padding:10px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);margin-bottom:14px}
+.pred-tip b{color:var(--gold);font-weight:500}
+.scroll-x{overflow-x:auto;margin:0 -4px;padding:4px 4px 10px;scrollbar-color:var(--line-2) transparent}
+
+/* edges (shared) */
+svg.edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.edges path{fill:none;stroke-width:1.5;opacity:.42;transition:opacity .15s,stroke-width .15s}
+.edges path.w{stroke:var(--win)}.edges path.l{stroke:var(--lose)}.edges path.n{stroke:var(--line-2);opacity:1}
+.edges path.on{opacity:.95}
+.edges path.pr{stroke:var(--gold);stroke-dasharray:4 4;opacity:.9}
+.mk-w path{fill:var(--win)}.mk-l path{fill:var(--lose)}.mk-n path{fill:rgba(255,255,255,.22)}.mk-g path{fill:var(--gold)}
+
+/* bracket cards (play-in + knockouts) */
+.kcard{position:relative;z-index:1;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:3px}
+.kcard.live{border-color:rgba(236,97,105,.5)}
+.kmeta{font-size:11px;color:var(--faint);padding:0 4px 5px;display:flex;justify-content:space-between;gap:8px}
+.kmeta .st{color:var(--muted)}
+.kmeta .st.live{color:var(--lose);font-weight:700;letter-spacing:.08em}
+.kmeta .st.pd{color:var(--gold)}
+.krow{display:flex;align-items:center;gap:9px;height:38px;padding:0 10px;border-radius:8px;background:var(--panel-2);font:600 14.5px var(--f-tag);letter-spacing:.03em;text-align:left;width:100%}
+.krow .lg,.krow .mono{width:24px;height:24px}
+.krow small{color:var(--faint);font-weight:500;font-size:11px}
+.krow .ks{margin-left:auto;font-size:16px;color:var(--muted);font-variant-numeric:tabular-nums}
+button.krow:hover{background:var(--hover)}
+.krow.win{background:var(--win-soft)}.krow.win .ks{color:var(--win)}
+.krow.lose{opacity:.38;filter:grayscale(1)}
+.krow.ph{color:var(--faint);font:500 12px var(--f-body)}
+.kcard.pred{border-style:dashed;border-color:rgba(210,172,96,.5)}
+.kcard.pred .krow.win{background:var(--gold-soft)}.kcard.pred .krow.win .ks{color:var(--gold)}
+.kscore{display:flex;gap:4px;padding:5px 2px 0}
+.kscore button{flex:1;padding:3px 0;border-radius:6px;font:600 12px var(--f-tag);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.kscore button[aria-pressed="true"]{color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.goal{position:relative;z-index:1;width:100%;border-radius:14px;padding:20px 14px;text-align:center;border:1px solid rgba(210,172,96,.45);background:radial-gradient(160px 120px at 50% 0,rgba(210,172,96,.18),transparent),var(--panel)}
+.goal .lg,.goal .mono{width:64px;height:64px;margin:4px auto 10px}
+.goal .tt{display:block;font:700 24px var(--f-tag);letter-spacing:.03em;line-height:1.1}
+.goal small{display:block;color:var(--muted);font-size:12px}
+.goal.ph{border-style:dashed;border-color:var(--line-2);background:var(--panel)}
+.goal.ph .ghost{width:56px;height:56px;margin:6px auto 10px}
+.goal.pd{border-style:dashed}
+
+/* play-in */
+.pi{position:relative;display:grid;grid-template-columns:repeat(5,214px);grid-template-rows:auto auto;column-gap:52px;row-gap:34px;width:max-content;margin:0 auto}
+.cell{display:flex;flex-direction:column;justify-content:center;gap:14px}
+.lane{position:absolute;left:-2px;font-size:11px;color:var(--faint);letter-spacing:.12em}
+
+/* swiss */
+.pots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:22px}
+@media (max-width:900px){.pots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pot{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px}
+.pot h3{display:flex;justify-content:space-between;margin-bottom:10px}
+.pot-teams{display:flex;gap:8px;flex-wrap:wrap}
+.pot-teams span{display:flex;flex-direction:column;align-items:center;gap:4px;width:52px;font:600 12px var(--f-tag);color:var(--muted)}
+.pot-teams .lg,.pot-teams .mono{width:32px;height:32px}
+.flow{position:relative;display:grid;grid-template-columns:repeat(6,196px);column-gap:34px;width:max-content;margin:0 auto}
+.col-h{font-size:11.5px;color:var(--faint);letter-spacing:.06em;padding:0 2px 10px;display:flex;justify-content:space-between}
+.col-h b{color:var(--muted);font-weight:500}
+.col{display:flex;flex-direction:column;gap:16px;min-height:560px}
+.box{position:relative;z-index:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px}
+.bh{display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px 8px}
+.bh b{font:700 15px var(--f-tag);letter-spacing:.08em}
+.bh span{font-size:11px;color:var(--muted)}
+.bh span.hot{color:var(--gold)}
+.rows{display:flex;flex-direction:column;gap:3px}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) 36px minmax(0,1fr);align-items:center;height:36px;border-radius:8px;background:var(--panel-2);transition:opacity .15s}
+.side{display:flex;align-items:center;gap:5px;height:100%;padding:0 5px;border-radius:8px;font:600 13.5px var(--f-tag);letter-spacing:.03em;min-width:0}
+.side.b{flex-direction:row-reverse}
+.side .lg,.side .mono{width:20px;height:20px}
+.side span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button.side:hover{background:var(--hover)}
+.side.win{background:var(--win-soft)}
+.side.lose{opacity:.38;filter:grayscale(1)}
+.mid{display:grid;place-items:center;height:22px;font:600 12px var(--f-tag);color:var(--fg);font-variant-numeric:tabular-nums}
+.mid.t{color:var(--faint);font-size:11.5px;font-weight:500}
+.mid.live{color:var(--lose)}
+button.mid{border-radius:5px;background:var(--bg);box-shadow:inset 0 0 0 1px rgba(210,172,96,.5);color:var(--gold)}
+.mrow.pred{outline:1px dashed rgba(210,172,96,.55);outline-offset:-1px}
+.mrow.pred .side.win{background:var(--gold-soft)}
+.mrow.pred .mid{color:var(--gold)}
+.mrow.sim:not(.pred){outline:1px dashed var(--line-2);outline-offset:-1px;background:transparent}
+.mrow.ph{background:rgba(255,255,255,.015)}
+.mrow.ph .ghost{width:18px;height:18px}
+.mrow.ph i.bar{display:block;width:26px;height:4px;border-radius:2px;background:var(--line)}
+.box.res{padding:8px 8px 10px}
+.box.res.adv{border-color:rgba(60,199,155,.32);background:linear-gradient(180deg,var(--win-soft),var(--panel) 80%)}
+.box.res.elim{border-color:rgba(236,97,105,.22);background:linear-gradient(180deg,var(--lose-soft),var(--panel) 80%)}
+.box.res.adv .bh span{color:var(--win)}
+.box.res.elim .bh span{color:var(--lose)}
+.slots{display:flex;gap:6px;padding:0 2px}
+.slot{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0 2px;border-radius:8px;font:600 11.5px var(--f-tag);color:var(--muted);min-width:0}
+.slot .lg,.slot .ghost,.slot .mono{width:28px;height:28px}
+.slot.pd .lg{opacity:.7}
+.slot.pd{color:var(--gold)}
+.box.res.elim .slot .lg{filter:grayscale(1);opacity:.55}
+.flow.hl-on .mrow:not(.hl),.flow.hl-on .slot:not(.hl){opacity:.22}
+.flow.hl-on .edges path{opacity:.08}
+.flow.hl-on .edges path.hl{opacity:1;stroke-width:2.4}
+.flow.hl-on .side.me{background:var(--hover);opacity:1;filter:none}
+
+/* standings */
+.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:680px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11.5px;color:var(--faint);font-weight:500;letter-spacing:.06em}
+tbody tr:last-child td{border-bottom:0}
+td.rk{color:var(--faint);font:600 13px var(--f-tag);width:36px}
+.tm{display:flex;align-items:center;gap:10px}
+.tm .lg,.tm .mono{width:26px;height:26px}
+.tm b{font:600 15px var(--f-tag);letter-spacing:.03em;min-width:44px}
+.tm small{color:var(--muted);font-size:12px}
+.rec{display:flex;align-items:center;gap:10px}
+.rec b{font:600 15px var(--f-tag);font-variant-numeric:tabular-nums;width:26px}
+.pips{display:flex;gap:3px}
+.pips i{width:7px;height:7px;border-radius:50%;background:var(--line-2)}
+.pips i.W{background:var(--win)}.pips i.L{background:var(--lose)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:500;background:var(--panel-2);color:var(--muted)}
+.pill.adv{background:var(--win-soft);color:var(--win)}
+.pill.elim{background:var(--lose-soft);color:var(--lose)}
+.pill.hot{background:var(--gold-soft);color:var(--gold)}
+tr.out td{opacity:.45}
+.prob{display:flex;align-items:center;gap:10px;min-width:170px}
+.track{flex:1;height:4px;border-radius:2px;background:var(--panel-2);overflow:hidden}
+.track i{display:block;height:100%;background:var(--win);border-radius:2px;transition:width .4s}
+.prob span,.num{font:600 13px var(--f-tag);font-variant-numeric:tabular-nums;width:44px;text-align:right}
+.champ-p{color:var(--gold)}
+.note{color:var(--faint);font-size:12px;margin:10px 0 0}
+
+/* knockout */
+.bracket{position:relative;display:grid;grid-template-columns:repeat(3,224px) 200px;column-gap:56px;width:max-content;margin:0 auto}
+.kcol{display:flex;flex-direction:column;justify-content:space-around;gap:20px;min-height:560px}
+
+/* schedule */
+.sched{display:flex;flex-direction:column;gap:18px}
+.day h3{display:flex;gap:10px;align-items:center;margin-bottom:8px;color:var(--fg);font-size:14px;font-weight:700}
+.day h3 small{color:var(--muted);font-weight:400;font-size:12px}
+.day h3 .today{font-size:11px;color:var(--gold-ink);background:var(--gold);border-radius:4px;padding:0 6px;font-weight:700}
+.day-list{border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden}
+.srow{display:grid;grid-template-columns:64px 170px minmax(0,1fr) 90px;gap:16px;align-items:center;padding:11px 18px;border-top:1px solid var(--line)}
+.srow:first-child{border-top:0}
+.srow .t{font:600 15px var(--f-tag);font-variant-numeric:tabular-nums}
+.srow .stg{color:var(--muted);font-size:12.5px}
+.srow .teams{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);align-items:center;max-width:380px}
+.srow .stt{text-align:right;font-size:12px;color:var(--faint)}
+.srow .stt.live{color:var(--lose);font-weight:700}
+.srow.done .stt{color:var(--muted)}
+.day.past{opacity:.55}
+@media (max-width:720px){.srow{grid-template-columns:52px minmax(0,1fr);row-gap:6px}.srow .teams{grid-column:1/-1}.srow .stt{grid-column:2;grid-row:1;text-align:right}.srow .stg{grid-column:2;grid-row:1}}
+.tzsel{background:var(--panel);border:1px solid var(--line-2);border-radius:999px;padding:7px 12px;color:var(--fg);font:inherit;font-size:13px}
+
+/* sheets */
+.modal{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));background:rgba(4,6,10,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sheet{width:min(580px,100%);max-height:calc(100vh - 40px);overflow:auto;background:var(--panel);border:1px solid var(--line-2);border-radius:18px;padding:22px}
+.sheet-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.sheet-h button{color:var(--muted);font-size:22px;padding:0 8px}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.lcard{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);text-decoration:none}
+.lcard:hover{border-color:var(--line-2)}
+.lic{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;flex:none}
+.lcard div{min-width:0}
+.lcard b{display:block;font-size:14px}
+.lcard small{display:block;color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lcard .x{position:absolute;top:4px;right:6px;color:var(--faint);font-size:16px;padding:2px 6px}
+.lcard .x:hover{color:var(--lose)}
+.addform{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.addform input{flex:1 1 160px;min-width:0;background:var(--bg);border:1px solid var(--line-2);border-radius:999px;padding:8px 14px;color:var(--fg);font:inherit;font-size:13px}
+.addform input::placeholder{color:var(--faint)}
+.poster{border-radius:14px;padding:22px;background:radial-gradient(300px 160px at 50% 0,rgba(210,172,96,.18),transparent),var(--bg);border:1px solid var(--line);text-align:center}
+.poster .eb{font-size:11px;letter-spacing:.18em;color:var(--gold)}
+.poster .champ .lg{width:84px;height:84px;margin:12px auto 6px}
+.poster .champ .tt{display:block;font:700 28px var(--f-tag)}
+.poster .champ small{display:block;color:var(--muted);font-size:12px}
+.prow{margin-top:18px}
+.prow small{display:block;color:var(--faint);font-size:11px;letter-spacing:.1em;margin-bottom:8px}
+.plogos{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.plogos span{display:flex;flex-direction:column;align-items:center;gap:3px;font:600 11px var(--f-tag);color:var(--muted);width:44px}
+.plogos .lg{width:30px;height:30px}
+.sheet .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.sheet details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.sheet summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sheet textarea{width:100%;min-height:90px;margin-top:10px;background:var(--bg);border:1px solid var(--line-2);border-radius:10px;color:var(--fg);padding:10px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+.sheet .msg{color:var(--muted);font-size:12px;margin:8px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13px;font-weight:500;z-index:50}
+.foot{color:var(--faint);font-size:12px;padding-block:24px 40px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+</style>
+
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0V3Z" fill="currentColor" fill-opacity=".2"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M12 13v4M8 21h8M9.5 17h5v4h-5z"/></svg>
+      <b>S<span>16</span></b>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="pi">入围赛</button>
+      <button role="tab" data-tab="swiss">瑞士轮</button>
+      <button role="tab" data-tab="ko">淘汰赛</button>
+      <button role="tab" data-tab="schedule">赛程</button>
+    </nav>
+    <div class="tools">
+      <label class="switch" title="为未开赛的比赛做预测"><input type="checkbox" id="pred"><i></i><span>预测</span></label>
+      <button class="pill-btn" id="btn-sim" hidden title="按参考实力随机模拟所有未开赛比赛，再点一次换一组结果"><span class="wide">按实力</span>模拟</button>
+      <button class="pill-btn quiet" id="open-share" hidden>分享</button>
+      <button class="pill-btn gold" id="open-live">▶ 直播</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero" id="hero"></section>
+
+  <section class="panel" id="p-pi" role="tabpanel">
+    <div class="ph"><div><h1>入围赛</h1><p class="sub">四支队伍双败淘汰，全部 BO5，冠军以第四档身份进入瑞士轮。</p></div></div>
+    <div id="pi-tip"></div>
+    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span></div>
+    <div class="scroll-x"><div class="pi" id="pi"></div></div>
+  </section>
+
+  <section class="panel" id="p-swiss" role="tabpanel" hidden>
+    <div class="ph"><div><h1>瑞士轮</h1><p class="sub">16 支队伍，三胜晋级、三败淘汰。同战绩队伍抽签对阵，晋级赛和淘汰赛为 BO3，其余 BO1。</p></div><div class="ctrl" id="sw-ctrl"></div></div>
+    <div id="pots"></div>
+    <div id="sw-tip"></div>
+    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span><span class="hint">悬停队伍查看它的晋级路线</span></div>
+    <div class="scroll-x"><div class="flow" id="flow"></div></div>
+    <div class="ph second"><div><h2>积分与晋级形势</h2><p class="sub" id="prob-note"></p></div></div>
+    <div class="table-scroll"><table id="stand"></table></div>
+  </section>
+
+  <section class="panel" id="p-ko" role="tabpanel" hidden>
+    <div class="ph"><div><h1>淘汰赛</h1><p class="sub">八强、半决赛、决赛均为 BO5。两支 3-0 队伍各抽一支 3-2 队伍，分处不同半区。决赛 11 月 14 日在纽约 Barclays Center。</p></div>
+      <div class="ctrl" id="ko-ctrl"></div></div>
+    <div id="ko-tip"></div>
+    <div class="scroll-x"><div class="bracket" id="bracket"></div></div>
+  </section>
+
+  <section class="panel" id="p-schedule" role="tabpanel" hidden>
+    <div class="ph"><div><h1>赛程</h1><p class="sub">全部场次与比分，来自 LoL Esports 官方赛程。</p></div>
+      <select class="tzsel" id="tz" aria-label="时区">
+        <option value="Asia/Shanghai">北京时间</option>
+        <option value="local">本机时区</option>
+        <option value="America/Chicago">美国中部时间</option>
+      </select></div>
+    <div class="sched" id="sched"></div>
+  </section>
+</main>
+
+<div class="modal" id="live" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="live-t">
+    <div class="sheet-h"><h2 id="live-t">选择直播间</h2><button data-close aria-label="关闭">×</button></div>
+    <div class="lgrid" id="lgrid"></div>
+    <form class="addform" id="addform">
+      <input id="ln" placeholder="添加常看的直播间名称" maxlength="24" required>
+      <input id="lu" placeholder="https://…" type="url" required>
+      <button class="pill-btn" type="submit">添加</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="share" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="share-t">
+    <div class="sheet-h"><h2 id="share-t">我的预测</h2><button data-close aria-label="关闭">×</button></div>
+    <div class="poster" id="poster"></div>
+    <div class="row">
+      <button class="pill-btn gold" id="btn-copytext">复制文字版</button>
+      <button class="pill-btn" id="btn-copycode">复制预测码</button>
+      <button class="pill-btn quiet" id="btn-clear">清空预测</button>
+    </div>
+    <details>
+      <summary>导入朋友的预测码</summary>
+      <textarea id="code" aria-label="预测码" spellcheck="false" placeholder="粘贴预测码"></textarea>
+      <div class="row" style="margin-top:8px"><button class="pill-btn" id="btn-import">导入并覆盖我的预测</button></div>
+      <p class="msg" id="importmsg"></p>
+    </details>
+  </div>
+</div>
+
+<footer class="wrap foot">
+  <span>粉丝自制，与 Riot Games 无关。赛程与比分来自 LoL Esports 官方数据。</span>
+  <span id="updated"></span>
+</footer>
+
+<script>
+/*LOGOS*/
+/*DATA*/
+/* ---------- teams ---------- */
+const TEAMS = {
+  GEN:{name:'Gen.G',region:'LCK',tier:1,elo:1720}, AL:{name:"Anyone's Legend",region:'LPL',tier:1,elo:1660},
+  TLAW:{name:'Team Liquid',region:'LCS',tier:1,elo:1510}, G2:{name:'G2 Esports',region:'LEC',tier:1,elo:1600},
+  LOS:{name:'LOS',region:'CBLOL',tier:2,elo:1400}, TSW:{name:'Team Secret Whales',region:'LCP',tier:2,elo:1490},
+  HLE:{name:'Hanwha Life',region:'LCK',tier:2,elo:1705}, BLG:{name:'Bilibili Gaming',region:'LPL',tier:2,elo:1685},
+  LYON:{name:'LYON',region:'LCS',tier:3,elo:1470}, MKOI:{name:'Movistar KOI',region:'LEC',tier:3,elo:1540},
+  T1:{name:'T1',region:'LCK',tier:3,elo:1690}, TES:{name:'Top Esports',region:'LPL',tier:3,elo:1635},
+  CFO:{name:'CTBC Flying Oyster',region:'LCP',tier:4,elo:1500}, IG:{name:'Invictus Gaming',region:'LPL',tier:4,elo:1600},
+  DK:{name:'Dplus KIA',region:'LCK',tier:4,elo:1615},
+  KC:{name:'Karmine Corp',region:'LEC',tier:4,elo:1540,playin:true}, MVK:{name:'MVK Esports',region:'LCP',tier:4,elo:1440,playin:true},
+  C9:{name:'Cloud9 Kia',region:'LCS',tier:4,elo:1470,playin:true}, FUR:{name:'FURIA',region:'CBLOL',tier:4,elo:1400,playin:true},
+  PIW:{name:'入围赛冠军',region:'',tier:4,elo:1480,playin:true},
+};
+const BASE_IDS = Object.keys(TEAMS).filter(id => !TEAMS[id].playin);
+const LIVE = [
+  {name:'哔哩哔哩', short:'B', color:'#fb7299', note:'官方中文直播', url:'https://live.bilibili.com/6'},
+  {name:'虎牙', short:'虎', color:'#ff9600', note:'官方中文直播', url:'https://www.huya.com/lpl'},
+  {name:'斗鱼', short:'鱼', color:'#ff5d23', note:'官方中文直播', url:'https://www.douyu.com/288016'},
+  {name:'Twitch', short:'T', color:'#9146ff', note:'英文官方 riotgames', url:'https://www.twitch.tv/riotgames'},
+  {name:'YouTube', short:'Y', color:'#e5202e', note:'英文官方 lolesports', url:'https://www.youtube.com/@lolesports/live'},
+  {name:'LoL Esports', short:'L', color:'#8a6d33', note:'官网 · 数据与观赛掉宝', url:'https://lolesports.com/'},
+];
+const PI_ORDER = ['ub1','ub2','ubf','lb1','lbf','f'];
+const PI_LABEL = {ub1:'胜者组首轮', ub2:'胜者组首轮', ubf:'胜者组决赛', lb1:'败者组首轮', lbf:'败者组决赛', f:'入围赛决赛'};
+const ROUND_T = {1:'2026-10-23T17:00:00Z', 2:'2026-10-24T17:00:00Z', 3:'2026-10-25T17:00:00Z', 4:'2026-10-28T20:00:00Z', 5:'2026-10-30T20:00:00Z'};
+const DEF_SCORE = {1:'1-0', 3:'2-0', 5:'3-1'};
+
+/* ---------- official matches ---------- */
+let MATCHES, PI_OFF, KO_OFF, LIVE_DATA = false, DATA_AT = Date.parse(DATA.updated.replace(/Z$/, ':00Z'));
+const toMatch = m => {
+  const [x, y] = m.teams; let res = null;
+  if (m.s === 'completed' && x.c && y.c) { const w = x.o === 'win' ? x : y, l = w === x ? y : x; res = {w: w.c, s: w.g + '-' + l.g}; }
+  return {id: m.id, t: Date.parse(m.t), st: m.st, bo: m.bo, state: m.s, a: x.c, b: y.c, ga: x.g || 0, gb: y.g || 0, res, live: m.s === 'inProgress'};
+};
+function ingest(d){
+  MATCHES = d.matches.map(toMatch);
+  PI_OFF = {}; MATCHES.filter(m => m.st === 'pi').forEach((m, i) => PI_OFF[PI_ORDER[i]] = m);
+  KO_OFF = {qf: MATCHES.filter(m => m.st === 'qf'), sf: MATCHES.filter(m => m.st === 'sf'), f: MATCHES.filter(m => m.st === 'f')};
+}
+ingest(DATA);
+
+/* ---------- live data: works wherever the page may reach the API; inside a sandbox it falls back to the embedded snapshot ---------- */
+const API = 'https://esports-api.lolesports.com/persisted/gw', API_KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z', LEAGUE = '98767975604431411';
+const STAGE_CN = {'入围赛':'pi', '瑞士轮':'swiss', '四分之一决赛':'qf', '半决赛':'sf', '决赛':'f'};
+async function apiGet(q){ const r = await fetch(API + q, {headers: {'x-api-key': API_KEY}}); if (!r.ok) throw new Error('HTTP ' + r.status); return (await r.json()).data; }
+async function fetchSchedule(){
+  const base = `/getSchedule?hl=zh-CN&leagueId=${LEAGUE}`, first = (await apiGet(base)).schedule, pages = [first];
+  for (const dir of ['older', 'newer']) {
+    let tok = first.pages[dir], guard = 0;
+    while (tok && guard++ < 6) {
+      const sch = (await apiGet(base + '&pageToken=' + encodeURIComponent(tok))).schedule;
+      if (!sch.events.some(e => e.startTime >= '2026-10-01')) break;
+      pages.push(sch); tok = sch.pages[dir];
+    }
+  }
+  const seen = new Set(), out = [];
+  pages.forEach(pg => pg.events.forEach(e => {
+    const m = e.match; if (!m || e.startTime < '2026-10-01' || seen.has(m.id)) return; seen.add(m.id);
+    out.push({id: m.id, t: e.startTime, st: STAGE_CN[e.blockName] || e.blockName, bo: m.strategy.count, s: e.state,
+      teams: m.teams.map(t => ({c: !t.code || t.code === 'TBD' ? null : t.code, g: (t.result || {}).gameWins, o: (t.result || {}).outcome}))});
+  }));
+  out.sort((a, b) => a.t < b.t ? -1 : a.t > b.t ? 1 : a.id < b.id ? -1 : 1);
+  return {matches: out};
+}
+async function refreshLive(){
+  try {
+    const d = await fetchSchedule();
+    if (d.matches.length < 10) throw new Error('empty');
+    ingest(d); LIVE_DATA = true; DATA_AT = Date.now(); renderAll();
+    setTimeout(refreshLive, MATCHES.some(m => m.live) ? 30e3 : 120e3);
+  } catch (e) {
+    if (LIVE_DATA) setTimeout(refreshLive, 60e3);
+  }
+}
+
+/* ---------- state ---------- */
+const KEY = 's16-watch-v2';
+let S = {picks:{}, pred:false, drawSeed:20261018, qfSeed:1114, tz:'Asia/Shanghai', links:[]};
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+/* ---------- helpers ---------- */
+function mulberry32(a){ a = a >>> 0; return function(){ a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffle(arr, rng){ for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+const reg = id => TEAMS[id] ? TEAMS[id].region : '';
+const mkey = (prefix, a, b) => prefix + ':' + [a, b].sort().join('-');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const logo = id => !id ? '<i class="ghost"></i>' : LOGO[id] ? `<img class="lg" src="${LOGO[id]}" alt="">` : `<span class="mono">?</span>`;
+const short = id => id === 'PIW' ? '待定' : id;
+const nameOf = id => id === 'PIW' ? '入围赛冠军（待定）' : TEAMS[id] ? TEAMS[id].name : id;
+function pickFor(key, a, b){ if (!S.pred || !key) return null; const p = S.picks[key]; return p && (p.w === a || p.w === b) ? p : null; }
+const dispGet = (key, a, b) => pickFor(key, a, b);
+function scoreAB(m){ const [x, y] = m.res.s.split('-'); return m.res.w === m.a ? x + ':' + y : y + ':' + x; }
+
+function pGame(a, b){ return 1 / (1 + Math.pow(10, (TEAMS[b].elo - TEAMS[a].elo) / 400)); }
+function lossWeights(g, bo){ const n = Math.ceil(bo / 2), q = 1 - g, w = []; let c = 1; for (let k = 0; k < n; k++) { w.push(c * Math.pow(q, k)); c = c * (n + k) / (k + 1); } return w; }
+function pSeries(a, b, bo){ const g = pGame(a, b), n = Math.ceil(bo / 2); return lossWeights(g, bo).reduce((s, x) => s + x, 0) * Math.pow(g, n); }
+function samplePick(a, b, bo, rng){
+  const w = rng() < pSeries(a, b, bo) ? a : b, l = w === a ? b : a;
+  const ws = lossWeights(pGame(w, l), bo), tot = ws.reduce((s, x) => s + x, 0);
+  let r = rng() * tot, k = 0; while (k < ws.length - 1 && (r -= ws[k]) > 0) k++;
+  return {w, s: Math.ceil(bo / 2) + '-' + k};
+}
+
+/* ---------- play-in ---------- */
+function computePI(){
+  const N = {};
+  const W = n => N[n] && N[n].res ? N[n].res.w : null;
+  const L = n => { const m = N[n]; return m && m.res ? (m.res.w === m.a ? m.b : m.a) : null; };
+  const slots = {ub1:() => [], ub2:() => [], ubf:() => [W('ub1'), W('ub2')], lb1:() => [L('ub1'), L('ub2')], lbf:() => [L('ubf'), W('lb1')], f:() => [W('ubf'), W('lbf')]};
+  PI_ORDER.forEach(n => {
+    const o = PI_OFF[n] || {}; let [a, b] = slots[n]();
+    if (o.a && o.b) { a = o.a; b = o.b; }
+    else if (o.a || o.b) { const k = o.a || o.b; const other = [a, b].find(x => x && x !== k) || null; a = o.a ? o.a : other; b = o.b ? o.b : other; }
+    const key = 'pi:' + n, official = !!o.res;
+    N[n] = {n, key, a, b, bo: 5, t: o.t, o, official, live: !!o.live, res: o.res || (a && b ? pickFor(key, a, b) : null)};
+  });
+  return {nodes: N, champ: W('f'), champOfficial: N.f.official};
+}
+
+/* ---------- swiss ---------- */
+function officialSwiss(piw){
+  const byR = {}, cnt = {};
+  MATCHES.filter(m => m.st === 'swiss' && (m.a || m.b)).forEach(m0 => {
+    const m = Object.assign({}, m0, {a: m0.a || piw, b: m0.b || piw});
+    const r = Math.max(cnt[m.a] || 0, cnt[m.b] || 0) + 1;
+    cnt[m.a] = (cnt[m.a] || 0) + 1; cnt[m.b] = (cnt[m.b] || 0) + 1;
+    (byR[r] = byR[r] || []).push(m);
+  });
+  return byR;
+}
+function drawR1(ids, rng){
+  const tier = k => shuffle(ids.filter(id => TEAMS[id].tier === k), rng);
+  const cross = (A, B) => {
+    const res = [];
+    (function bt(i, used){
+      if (i === A.length) return true;
+      for (const b of B) {
+        if (used.has(b) || (reg(A[i]) && reg(A[i]) === reg(b))) continue;
+        used.add(b); res.push([A[i], b]);
+        if (bt(i + 1, used)) return true;
+        used.delete(b); res.pop();
+      }
+      return false;
+    })(0, new Set());
+    return res;
+  };
+  return cross(tier(1), tier(4)).concat(cross(tier(2), tier(3)));
+}
+function pairGroup(ids, opp, rng){
+  const arr = shuffle(ids.slice().sort(), rng);
+  const bt = rest => {
+    if (!rest.length) return [];
+    const a = rest[0];
+    for (let i = 1; i < rest.length; i++) {
+      const b = rest[i]; if (opp[a].has(b)) continue;
+      const r = bt(rest.filter((_, j) => j !== 0 && j !== i));
+      if (r) return [[a, b]].concat(r);
+    }
+    return null;
+  };
+  const ok = bt(arr); if (ok) return ok;
+  const out = []; for (let i = 0; i < arr.length; i += 2) out.push([arr[i], arr[i + 1]]); return out;
+}
+function runSwiss(ids, byR, getResult, mkR1, pairRng){
+  const rec = {}, opp = {};
+  ids.forEach(id => { rec[id] = {w:0, l:0, h:[]}; opp[id] = new Set(); });
+  const rounds = []; let complete = true, awaitingDraw = false;
+  for (let r = 1; r <= 5; r++) {
+    const active = ids.filter(id => rec[id].w < 3 && rec[id].l < 3);
+    if (!active.length) break;
+    let pairs;
+    if (byR[r] && byR[r].length) pairs = byR[r].map(o => ({a: o.a, b: o.b, o}));
+    else if (r === 1) {
+      const p = mkR1 ? mkR1() : null;
+      if (!p) { complete = false; awaitingDraw = true; break; }
+      pairs = p.map(([a, b]) => ({a, b}));
+    } else {
+      const groups = {};
+      active.forEach(id => { const k = rec[id].w + '-' + rec[id].l; (groups[k] = groups[k] || []).push(id); });
+      const keys = Object.keys(groups).sort((x, y) => (y[0] - x[0]) || (x[2] - y[2]));
+      const rng = pairRng(r); pairs = [];
+      keys.forEach(k => pairGroup(groups[k], opp, rng).forEach(([a, b]) => pairs.push({a, b})));
+    }
+    const matches = pairs.map(({a, b, o}) => {
+      const ra = rec[a], bo = o ? o.bo : (ra.w === 2 || ra.l === 2) ? 3 : 1, key = mkey('r' + r, a, b);
+      const res = (o && o.res) || getResult(key, a, b, bo);
+      return {key, a, b, bo, group: ra.w + '-' + ra.l, res, o, official: !!(o && o.res), live: !!(o && o.live), t: o ? o.t : null, sim: !o};
+    });
+    rounds.push({r, matches});
+    if (matches.some(m => !m.res)) { complete = false; break; }
+    matches.forEach(m => {
+      const w = m.res.w, l = w === m.a ? m.b : m.a;
+      rec[w].w++; rec[l].l++; rec[w].h.push('W'); rec[l].h.push('L');
+      opp[m.a].add(m.b); opp[m.b].add(m.a);
+    });
+  }
+  return {rounds, rec, complete, awaitingDraw};
+}
+
+/* ---------- knockouts ---------- */
+function drawQF(rec, ids, rng){
+  const by = l => shuffle(ids.filter(id => rec[id].w === 3 && rec[id].l === l), rng);
+  const zero = by(0), one = by(1), two = by(2);
+  const rest = shuffle(one.concat(two.slice(2)), rng);
+  return [[zero[0], two[0]], [rest[0], rest[1]], [zero[1], two[1]], [rest[2], rest[3]]];
+}
+function computeKO(sw, ids, get, rng){
+  let qf = null, qfSim = false;
+  if (KO_OFF.qf.length === 4 && KO_OFF.qf.every(m => m.a && m.b)) qf = KO_OFF.qf.map(m => [m.a, m.b]);
+  else if (sw.complete) { qf = drawQF(sw.rec, ids, rng); qfSim = true; }
+  const mk = (stage, i, a, b, o) => {
+    o = o || {}; if (o.a && o.b) { a = o.a; b = o.b; }
+    if (!a || !b) return {stage, i, a, b, key: null, bo: 5, res: null, o, t: o.t};
+    const key = mkey(stage + i, a, b), res = o.res || get(key, a, b, 5);
+    return {stage, i, a, b, key, bo: 5, res, o, official: !!o.res, live: !!o.live, t: o.t};
+  };
+  const W = m => m.res ? m.res.w : null;
+  const q = [0, 1, 2, 3].map(i => mk('qf', i + 1, qf && qf[i][0], qf && qf[i][1], KO_OFF.qf[i]));
+  const s = [mk('sf', 1, W(q[0]), W(q[1]), KO_OFF.sf[0]), mk('sf', 2, W(q[2]), W(q[3]), KO_OFF.sf[1])];
+  const f = mk('f', 1, W(s[0]), W(s[1]), KO_OFF.f[0]);
+  return {qf: q, sf: s, f, champ: W(f), runnerUp: f.res ? (f.res.w === f.a ? f.b : f.a) : null, qfSim, ready: !!qf};
+}
+
+/* ---------- model ---------- */
+const dispRng = r => mulberry32(S.drawSeed * 31 + r * 7919);
+const predR1 = ids => S.pred ? () => drawR1(ids, mulberry32(S.drawSeed)) : null;
+function compute(){
+  const pi = computePI(), piw = pi.champ || 'PIW';
+  const ids = BASE_IDS.concat(piw), byR = officialSwiss(piw);
+  const sw = runSwiss(ids, byR, dispGet, predR1(ids), dispRng);
+  const ko = computeKO(sw, ids, dispGet, mulberry32(S.qfSeed));
+  return {pi, piw, ids, byR, sw, ko};
+}
+let SIM = null, simTimer = null;
+function simulate(M, N){
+  const stats = {}; M.ids.forEach(id => stats[id] = {adv:0, champ:0});
+  const rng = mulberry32(777), dispRounds = M.sw.rounds.length;
+  const get = (k, a, b, bo) => dispGet(k, a, b) || samplePick(a, b, bo, rng);
+  for (let n = 0; n < N; n++) {
+    const sw = runSwiss(M.ids, M.byR, get, predR1(M.ids) || (() => drawR1(M.ids, rng)), r => r <= dispRounds ? dispRng(r) : rng);
+    M.ids.forEach(id => { if (sw.rec[id].w === 3) stats[id].adv++; });
+    const ko = computeKO(sw, M.ids, get, M.sw.complete ? mulberry32(S.qfSeed) : rng);
+    if (ko.champ) stats[ko.champ].champ++;
+  }
+  M.ids.forEach(id => { stats[id].adv /= N; stats[id].champ /= N; });
+  return stats;
+}
+
+/* ---------- time ---------- */
+function tzName(){ return S.tz === 'local' ? Intl.DateTimeFormat().resolvedOptions().timeZone : S.tz; }
+function fmt(ts, opts){ return new Intl.DateTimeFormat('zh-CN', Object.assign({timeZone: tzName(), hour12:false}, opts)).format(new Date(ts)); }
+const fMD = ts => fmt(ts, {month:'numeric', day:'numeric'});
+const fWk = ts => fmt(ts, {weekday:'short'});
+const fTime = ts => fmt(ts, {hour:'2-digit', minute:'2-digit'});
+const fDayKey = ts => fmt(ts, {year:'numeric', month:'2-digit', day:'2-digit'});
+const tzLabel = () => ({'Asia/Shanghai':'北京时间', 'America/Chicago':'美国中部时间'})[S.tz] || '本机时间';
+function stageLabel(m){
+  if (m.st === 'pi') { const n = PI_ORDER.find(k => PI_OFF[k] === m); return '入围赛 · ' + PI_LABEL[n]; }
+  return {swiss:'瑞士轮', qf:'八强赛', sf:'半决赛', f:'总决赛'}[m.st] + ' · BO' + m.bo;
+}
+
+/* ---------- edges ---------- */
+const $ = id => document.getElementById(id);
+const MARKERS = '<defs>' + ['w', 'l', 'n', 'g'].map(k => `<marker id="mk-${k}" class="mk-${k}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z"/></marker>`).join('') + '</defs>';
+function drawEdges(root, edges){
+  const svg = root && root.querySelector('svg.edges'); if (!svg || root.offsetParent === null) return;
+  const fr = root.getBoundingClientRect();
+  svg.setAttribute('width', root.scrollWidth); svg.setAttribute('height', root.scrollHeight);
+  let p = MARKERS;
+  edges.forEach(e => {
+    const a = root.querySelector(`[data-node="${e.f}"]`), b = root.querySelector(`[data-node="${e.t}"]`); if (!a || !b) return;
+    const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+    const x1 = ra.right - fr.left, y1 = ra.top - fr.top + ra.height / 2 + (e.dy || 0);
+    const x2 = rb.left - fr.left - 2, y2 = rb.top - fr.top + Math.min(rb.height / 2, e.cap || 1e4);
+    const dx = (x2 - x1) * .55, mk = e.cls && e.cls.includes('pr') ? 'g' : e.k;
+    p += `<path class="${e.k} ${e.cls || ''}" ${e.id ? `data-e="${e.id}"` : ''} d="M${x1} ${y1}C${x1 + dx} ${y1},${x2 - dx} ${y2},${x2} ${y2}" marker-end="url(#mk-${mk})"/>`;
+  });
+  svg.innerHTML = p;
+}
+
+/* ---------- bracket card ---------- */
+function kcard(m, label, node, seed){
+  const can = S.pred && m.key && !m.official && !m.live;
+  const pred = m.res && !m.official;
+  let st = '';
+  if (m.official) st = '<span class="st">已结束</span>';
+  else if (m.live) st = '<span class="st live">LIVE</span>';
+  else if (pred) st = '<span class="st pd">我的预测</span>';
+  else if (m.t) st = `<span class="st">${fMD(m.t)} ${fWk(m.t)} ${fTime(m.t)}</span>`;
+  const row = id => {
+    if (!id) return '<div class="krow ph"><i class="ghost"></i>待定</div>';
+    const cls = m.res ? (m.res.w === id ? 'win' : 'lose') : '';
+    const g = m.live ? (id === m.a ? m.o.ga : m.o.gb) : m.res ? (m.res.w === id ? m.res.s[0] : m.res.s[2]) : '';
+    const inner = `${logo(id)}${short(id)}<small>${seed && seed[id] || ''}</small><span class="ks">${g}</span>`;
+    return can ? `<button class="krow ${cls}" data-key="${m.key}" data-team="${id}" data-bo="5" aria-label="预测 ${id} 获胜">${inner}</button>` : `<div class="krow ${cls}">${inner}</div>`;
+  };
+  const score = can && m.res ? `<div class="kscore">${['3-0','3-1','3-2'].map(s => `<button data-setscore="${m.key}" data-s="${s}" aria-pressed="${m.res.s === s}">${s.replace('-', ':')}</button>`).join('')}</div>` : '';
+  return `<div class="kcard ${pred ? 'pred' : ''} ${m.live ? 'live' : ''}" data-node="${node}"><div class="kmeta"><span>${label}</span>${st}</div>${row(m.a)}${row(m.b)}${score}</div>`;
+}
+function predTip(open, closedMsg){
+  if (!open) return '';
+  return S.pred
+    ? `<div class="pred-tip"><b>预测已开启</b>点击未开赛比赛中的队伍选出胜者，再点一次取消。预测只保存在你的浏览器里。</div>`
+    : `<div class="pred-tip">${closedMsg} 想猜结果？打开右上角的<b>预测</b>开关。</div>`;
+}
+
+/* ---------- play-in render ---------- */
+function renderPI(M){
+  const N = M.pi.nodes;
+  const cell = (c, r, inner, span) => `<div class="cell" style="grid-column:${c};grid-row:${span ? '1 / span 2' : r}">${inner}</div>`;
+  const card = n => kcard(N[n], PI_LABEL[n], n);
+  const champ = M.pi.champ;
+  const goal = champ
+    ? `<div class="goal ${M.pi.champOfficial ? '' : 'pd'}" data-node="goal">${logo(champ)}<span class="tt">${champ}</span><small>${M.pi.champOfficial ? '晋级瑞士轮 · 第四档' : '我的预测 · 晋级瑞士轮'}</small></div>`
+    : `<div class="goal ph" data-node="goal"><i class="ghost"></i><span class="tt" style="color:var(--muted)">待定</span><small>冠军晋级瑞士轮</small></div>`;
+  $('pi').innerHTML = '<svg class="edges" aria-hidden="true"></svg>' +
+    cell(1, 1, card('ub1') + card('ub2')) + cell(2, 1, card('ubf')) + cell(2, 2, card('lb1')) + cell(3, 2, card('lbf')) +
+    cell(4, 1, card('f'), true) + cell(5, 1, goal, true);
+  const open = PI_ORDER.some(n => !N[n].official);
+  $('pi-tip').innerHTML = predTip(open, '入围赛还剩 ' + PI_ORDER.filter(n => !N[n].official).length + ' 场。');
+  drawPI();
+}
+function piEdges(){
+  const N = MODEL.pi.nodes, E = [];
+  const add = (f, t, k) => {
+    const m = N[f]; let cls = '';
+    if (m.res) cls = m.official ? 'on' : 'pr';
+    E.push({f, t, k: m.res ? k : 'n', cls, dy: k === 'w' ? -8 : 8});
+  };
+  add('ub1', 'ubf', 'w'); add('ub2', 'ubf', 'w'); add('ub1', 'lb1', 'l'); add('ub2', 'lb1', 'l');
+  add('ubf', 'f', 'w'); add('ubf', 'lbf', 'l'); add('lb1', 'lbf', 'w'); add('lbf', 'f', 'w'); add('f', 'goal', 'w');
+  return E;
+}
+function drawPI(){ if (MODEL) drawEdges($('pi'), piEdges()); }
+
+/* ---------- swiss render ---------- */
+const NMATCH = {'0-0':8,'1-0':4,'0-1':4,'2-0':2,'1-1':4,'0-2':2,'2-1':3,'1-2':3,'2-2':3};
+const NSLOT = {'3-0':2,'3-1':3,'3-2':3,'0-3':2,'1-3':3,'2-3':3};
+const COLS = [
+  {r:1, boxes:['0-0'], j:'center'}, {r:2, boxes:['1-0','0-1'], j:'space-around'}, {r:3, boxes:['2-0','1-1','0-2'], j:'space-between'},
+  {r:4, boxes:['3-0','2-1','1-2','0-3'], j:'space-between'}, {r:5, boxes:['3-1','2-2','1-3'], j:'space-between'}, {boxes:['3-2','2-3'], j:'space-between'},
+];
+const SW_EDGES = [];
+Object.keys(NMATCH).forEach(k => { const w = +k[0], l = +k[2]; SW_EDGES.push({f:k, t:(w + 1) + '-' + l, k:'w', dy:-10, cap:60, id:k + '>' + (w + 1) + '-' + l}, {f:k, t:w + '-' + (l + 1), k:'l', dy:10, cap:60, id:k + '>' + w + '-' + (l + 1)}); });
+const BOXTAG = {'2-0':'晋级赛','2-1':'晋级赛','0-2':'淘汰赛','1-2':'淘汰赛','2-2':'生死战'};
+let PATH = {};
+function rowHTML(m){
+  const can = S.pred && !m.official && !m.live;
+  const pred = m.res && !m.official;
+  const side = (id, pos) => {
+    const cls = m.res ? (m.res.w === id ? 'win' : 'lose') : '';
+    const inner = `${logo(id)}<span>${short(id)}</span>`;
+    return can ? `<button class="side ${pos} ${cls}" data-key="${m.key}" data-team="${id}" data-bo="${m.bo}" data-tm="${id}" aria-label="预测 ${id} 获胜">${inner}</button>` : `<div class="side ${pos} ${cls}" data-tm="${id}">${inner}</div>`;
+  };
+  let mid;
+  if (m.live) mid = `<span class="mid live">${m.o.ga}:${m.o.gb}</span>`;
+  else if (m.res && pred && m.bo > 1) mid = `<button class="mid" data-cycle="${m.key}" title="切换比分">${scoreAB(m)}</button>`;
+  else if (m.res) mid = `<span class="mid">${scoreAB(m)}</span>`;
+  else if (m.t) mid = `<span class="mid t">${fTime(m.t)}</span>`;
+  else mid = '<span class="mid t">vs</span>';
+  return `<div class="mrow ${pred ? 'pred' : ''} ${m.sim ? 'sim' : ''}" data-t="${m.a} ${m.b}">${side(m.a, 'a')}${mid}${side(m.b, 'b')}</div>`;
+}
+const phRow = '<div class="mrow ph" aria-label="待定"><span class="side a"><i class="ghost"></i><i class="bar"></i></span><span class="mid t">vs</span><span class="side b"><i class="ghost"></i><i class="bar"></i></span></div>';
+function renderPots(M){
+  if (M.byR[1]) { $('pots').innerHTML = ''; return; }
+  const tiers = [1, 2, 3, 4].map(k => M.ids.filter(id => TEAMS[id].tier === k));
+  $('pots').innerHTML = `<div class="ph" style="margin-bottom:10px"><div><h2>首轮抽签分档</h2><p class="sub">入围赛决赛结束后立即抽签（美国时间 10 月 18 日，约北京时间 10 月 19 日早上，具体时间官方未公布）。规则：第一档对第四档、第二档对第三档，同赛区回避。官方抽签公布后，下方流程图会换成真实对阵。</p></div></div><div class="pots">` +
+    tiers.map((ts, i) => `<div class="pot"><h3><span>第${'一二三四'[i]}档</span></h3><div class="pot-teams">${ts.map(id => `<span title="${esc(nameOf(id))}">${logo(id)}${short(id)}</span>`).join('')}</div></div>`).join('') + '</div>';
+}
+function renderFlow(M){
+  const byBox = {};
+  PATH = {}; M.ids.forEach(id => PATH[id] = []);
+  M.sw.rounds.forEach(rd => rd.matches.forEach(m => { (byBox[m.group] = byBox[m.group] || []).push(m); PATH[m.a].push(m.group); PATH[m.b].push(m.group); }));
+  M.ids.forEach(id => { const r = M.sw.rec[id]; if (r.w === 3 || r.l === 3) PATH[id].push(r.w + '-' + r.l); });
+  let html = '<svg class="edges" aria-hidden="true"></svg>';
+  COLS.forEach(c => {
+    html += `<div><div class="col-h"><b>${c.r ? '第' + c.r + '轮' : '最终'}</b><span>${c.r ? fMD(Date.parse(ROUND_T[c.r])) + (c.r >= 3 ? ' 起' : '') : ''}</span></div><div class="col" style="justify-content:${c.j}">`;
+    c.boxes.forEach(k => {
+      if (NSLOT[k]) {
+        const adv = k[0] === '3';
+        const teams = M.ids.filter(id => { const r = M.sw.rec[id]; return r.w + '-' + r.l === k; });
+        let slots = teams.map(id => { const pd = M.sw.rounds.some(rd => rd.matches.some(m => (m.a === id || m.b === id) && !m.official)); return `<span class="slot ${pd ? 'pd' : ''}" data-tm="${id}" title="${esc(nameOf(id))}">${logo(id)}${short(id)}</span>`; }).join('');
+        for (let i = teams.length; i < NSLOT[k]; i++) slots += '<span class="slot"><i class="ghost"></i>&nbsp;</span>';
+        html += `<div class="box res ${adv ? 'adv' : 'elim'}" data-node="${k}"><div class="bh"><b>${k}</b><span>${adv ? '晋级' : '淘汰'}</span></div><div class="slots">${slots}</div></div>`;
+      } else {
+        const ms = byBox[k] || [], bo = (k[0] === '2' || k[2] === '2') ? 3 : 1;
+        const rows = ms.map(rowHTML).join('') + phRow.repeat(Math.max(0, NMATCH[k] - ms.length));
+        const simDraw = k === '0-0' && !M.byR[1] && !M.sw.awaitingDraw;
+        const tag = k === '0-0' && M.sw.awaitingDraw ? '<span>待抽签</span>' : simDraw ? '<span class="hot">模拟抽签 · BO1</span>' : `<span class="${BOXTAG[k] ? 'hot' : ''}">${BOXTAG[k] ? BOXTAG[k] + ' · ' : ''}BO${bo}</span>`;
+        html += `<div class="box" data-node="${k}"><div class="bh"><b>${k}</b>${tag}</div><div class="rows">${rows}</div></div>`;
+      }
+    });
+    html += '</div></div>';
+  });
+  $('flow').innerHTML = html;
+  const open = M.sw.awaitingDraw || M.sw.rounds.some(rd => rd.matches.some(m => !m.official));
+  if (M.sw.awaitingDraw) $('sw-tip').innerHTML = predTip(true, '首轮对阵还没抽签。');
+  else if (!M.byR[1]) $('sw-tip').innerHTML = '<div class="pred-tip"><b>模拟抽签</b>官方首轮还没抽签，下面的对阵是按规则模拟抽出来的，可以点「重新模拟抽签」换一组。点击队伍预测胜者，下一轮会按战绩自动配对。' + (M.pi.champ ? '' : '入围赛冠军未定，先用「待定」占位，也可以先去入围赛页预测冠军。') + '</div>';
+  else $('sw-tip').innerHTML = predTip(open, '后续轮次的对阵要等上一轮打完才会抽签。');
+  $('sw-ctrl').innerHTML = S.pred ? (M.byR[1] ? '' : '<button class="pill-btn" id="btn-redraw">重新模拟抽签</button>') : '';
+  drawSwiss();
+}
+function drawSwiss(){ drawEdges($('flow'), SW_EDGES); }
+function highlight(id){
+  const flow = $('flow');
+  if (!id || id === 'PIW') { flow.classList.remove('hl-on'); return; }
+  flow.classList.add('hl-on');
+  flow.querySelectorAll('.mrow').forEach(r => r.classList.toggle('hl', (r.dataset.t || '').split(' ').includes(id)));
+  flow.querySelectorAll('.slot').forEach(s => s.classList.toggle('hl', s.dataset.tm === id));
+  flow.querySelectorAll('.side').forEach(s => s.classList.toggle('me', s.dataset.tm === id));
+  const path = PATH[id] || [], es = new Set(); for (let i = 1; i < path.length; i++) es.add(path[i - 1] + '>' + path[i]);
+  flow.querySelectorAll('.edges path[data-e]').forEach(e => e.classList.toggle('hl', es.has(e.dataset.e)));
+}
+function status(r){
+  if (r.w === 3) return ['adv', r.l === 0 ? '3-0 晋级' : '晋级'];
+  if (r.l === 3) return ['elim', '淘汰'];
+  if (r.w === 2 && r.l === 2) return ['hot', '生死战'];
+  if (r.w === 2) return ['hot', '赛点'];
+  if (r.l === 2) return ['elim', '背水一战'];
+  return ['', r.w + r.l ? '进行中' : '未开赛'];
+}
+const pct = x => x === undefined ? '–' : x >= .995 && x < 1 ? '>99%' : x > 0 && x < .005 ? '<1%' : Math.round(x * 100) + '%';
+function renderStand(M){
+  const rows = M.ids.map(id => ({id, r: M.sw.rec[id], s: SIM && SIM[id]}));
+  const sc = x => x.r.w === 3 ? 100 - x.r.l * 10 : x.r.l === 3 ? -100 + x.r.w * 10 : (x.r.w - x.r.l) * 5;
+  rows.sort((a, b) => (sc(b) - sc(a)) || ((b.s ? b.s.adv : 0) - (a.s ? a.s.adv : 0)) || (TEAMS[b.id].elo - TEAMS[a.id].elo));
+  $('stand').innerHTML = '<thead><tr><th>#</th><th>队伍</th><th>战绩</th><th>状态</th><th>晋级概率</th><th style="text-align:right">夺冠概率</th></tr></thead><tbody>' +
+    rows.map((x, i) => { const [c, t] = status(x.r); return `<tr class="${x.r.l === 3 ? 'out' : ''}">
+      <td class="rk">${i + 1}</td>
+      <td><div class="tm">${logo(x.id)}<b>${short(x.id)}</b><small>${esc(nameOf(x.id))}${reg(x.id) ? ' · ' + reg(x.id) : ''}</small></div></td>
+      <td><div class="rec"><b>${x.r.w}-${x.r.l}</b><span class="pips">${[0,1,2,3,4].map(k => `<i class="${x.r.h[k] || ''}"></i>`).join('')}</span></div></td>
+      <td><span class="pill ${c}">${t}</span></td>
+      <td><div class="prob"><div class="track"><i style="width:${x.s ? x.s.adv * 100 : 0}%"></i></div><span>${pct(x.s && x.s.adv)}</span></div></td>
+      <td class="num champ-p" style="text-align:right">${pct(x.s && x.s.champ)}</td></tr>`; }).join('') + '</tbody>';
+  const usesPred = S.pred && Object.keys(S.picks).length;
+  $('prob-note').textContent = '战绩只计真实赛果。概率是按真实赛果' + (usesPred ? '和你的预测' : '') + '，用参考实力把剩余比赛模拟 2000 次得出，仅供参考。';
+}
+
+/* ---------- knockout render ---------- */
+function renderKO(M){
+  const k = M.ko, seed = {};
+  M.ids.forEach(id => { const r = M.sw.rec[id]; if (r.w === 3) seed[id] = '3-' + r.l; });
+  const goal = k.champ
+    ? `<div class="goal ${k.f.official ? '' : 'pd'}" data-node="goal">${logo(k.champ)}<span class="tt">${k.champ}</span><small>${esc(nameOf(k.champ))}</small><small style="margin-top:6px">${k.f.official ? 'S16 世界冠军' : '我的预测冠军'}</small></div>`
+    : '<div class="goal ph" data-node="goal"><i class="ghost"></i><span class="tt" style="color:var(--muted)">冠军</span><small>11/15 揭晓</small></div>';
+  $('bracket').innerHTML = '<svg class="edges" aria-hidden="true"></svg>' +
+    `<div class="kcol">${k.qf.map((m, i) => kcard(m, '八强 ' + (i + 1), 'qf' + i, seed)).join('')}</div>` +
+    `<div class="kcol">${k.sf.map((m, i) => kcard(m, '半决赛 ' + (i + 1), 'sf' + i, seed)).join('')}</div>` +
+    `<div class="kcol">${kcard(k.f, '总决赛 · 纽约', 'f0', seed)}</div><div class="kcol">${goal}</div>`;
+  const anyOpen = k.ready && [...k.qf, ...k.sf, k.f].some(m => m.key && !m.official);
+  $('ko-tip').innerHTML = !k.ready ? `<div class="pred-tip">八强对阵要等瑞士轮结束后（10 月 31 日）抽签产生。${S.pred ? '把瑞士轮全部预测完，这里会按规则模拟抽签。' : '打开右上角<b>预测</b>开关，可以先把瑞士轮猜完，这里会按规则模拟八强抽签。'}</div>`
+    : k.qfSim ? '<div class="pred-tip"><b>模拟对阵</b>八强官方抽签还没出，当前对阵是按你的瑞士轮预测模拟抽出来的。</div>' : predTip(anyOpen, '');
+  $('ko-ctrl').innerHTML = k.qfSim ? '<button class="pill-btn" id="btn-qf">重新模拟抽签</button>' : '';
+  drawKO();
+}
+function drawKO(){
+  if (!MODEL) return;
+  const k = MODEL.ko, E = [];
+  const cls = m => m.res ? (m.official ? 'on' : 'pr') : '';
+  [0, 1, 2, 3].forEach(i => E.push({f:'qf' + i, t:'sf' + (i >> 1), k: k.qf[i].res ? 'w' : 'n', cls: cls(k.qf[i])}));
+  [0, 1].forEach(i => E.push({f:'sf' + i, t:'f0', k: k.sf[i].res ? 'w' : 'n', cls: cls(k.sf[i])}));
+  E.push({f:'f0', t:'goal', k: k.f.res ? 'w' : 'n', cls: cls(k.f)});
+  drawEdges($('bracket'), E);
+}
+
+/* ---------- hero / schedule ---------- */
+function resolve(m){
+  if (m.st === 'pi') { const n = PI_ORDER.find(k => PI_OFF[k] === m), node = MODEL.pi.nodes[n]; return {a: node.a, b: node.b}; }
+  return {a: m.a, b: m.b};
+}
+function nextMatch(){ const now = Date.now(); return MATCHES.find(m => m.live) || MATCHES.find(m => m.state !== 'completed' && m.t > now - 6 * 3600e3); }
+function renderHero(){
+  const nx = nextMatch();
+  let left;
+  if (nx) {
+    const {a, b} = resolve(nx);
+    const team = (id, side) => `<div class="nx-team ${side}">${logo(id)}<div>${id ? short(id) : '待定'}<small>${id ? esc(nameOf(id)) : '等待上一场结果'}</small></div></div>`;
+    const mid = nx.live ? `<div class="nx-mid live"><b>${nx.ga}:${nx.gb}</b><small>BO${nx.bo} 进行中</small></div>` : `<div class="nx-mid"><b>${fTime(nx.t)}</b><small>${fMD(nx.t)} ${fWk(nx.t)} · ${tzLabel()}</small></div>`;
+    left = `<div class="card next"><div class="nx-k"><span class="badge ${nx.live ? 'live' : ''}">${nx.live ? 'LIVE' : '下一场'}</span>${stageLabel(nx)}${nx.st === 'pi' ? ' · BO5' : ''}</div>
+      <div class="nx-teams">${team(a, 'a')}${mid}${team(b, 'b')}</div>
+      <div class="nx-foot"><span class="cd" id="cd"></span><div class="watch-row">${LIVE.slice(0, 3).map((l, i) => `<a class="pill-btn ${i === 0 ? 'gold' : ''}" href="${l.url}" target="_blank" rel="noopener">${i === 0 ? '▶ ' : ''}${l.name}</a>`).join('')}<button class="pill-btn" data-open="live">更多</button></div></div></div>`;
+  } else left = '<div class="card next"><div class="nx-k">S16 全部比赛已结束</div></div>';
+  const done = MATCHES.filter(m => m.res).slice(-4).reverse();
+  const rr = m => { const w = m.res.w; return `<div class="rrow"><div class="when">${fMD(m.t)}<br>${stageLabel(m).replace(/ · BO\d/, '').replace('入围赛 · ', '')}</div><div class="rline"><span class="rt a ${w === m.a ? '' : 'l'}">${logo(m.a)}${m.a}</span><span class="rs">${scoreAB(m)}</span><span class="rt b ${w === m.b ? '' : 'l'}">${logo(m.b)}${m.b}</span></div></div>`; };
+  const fresh = `<span class="fresh ${LIVE_DATA ? 'on' : ''}">${LIVE_DATA ? '实时 · ' + fTime(DATA_AT) + ' 更新' : '数据 ' + fMD(DATA_AT) + ' ' + fTime(DATA_AT)}</span>`;
+  const right = `<div class="card recent"><h3><span>最近赛果</span>${fresh}</h3>${done.length ? done.map(rr).join('') : '<p class="sub">还没有已结束的比赛。</p>'}</div>`;
+  $('hero').innerHTML = left + right;
+  tick();
+}
+function tick(){
+  const el = $('cd'); if (!el) return;
+  const nx = nextMatch(), now = Date.now(); if (!nx) return;
+  if (nx.live) { el.innerHTML = '正在直播'; return; }
+  if (nx.t <= now) { el.innerHTML = '即将开始'; return; }
+  let s = Math.floor((nx.t - now) / 1000); const d = Math.floor(s / 86400); s %= 86400;
+  const p = n => String(n).padStart(2, '0');
+  el.innerHTML = '距开赛 ' + (d ? `<b>${d}</b>天` : '') + `<b>${p(Math.floor(s / 3600))}</b>时<b>${p(Math.floor(s % 3600 / 60))}</b>分<b>${p(s % 60)}</b>秒`;
+}
+function renderSchedule(){
+  const days = []; let cur = null;
+  MATCHES.forEach(m => { const k = fDayKey(m.t); if (!cur || cur.k !== k) days.push(cur = {k, t: m.t, ms: []}); cur.ms.push(m); });
+  const today = fDayKey(Date.now());
+  $('sched').innerHTML = days.map(d => {
+    const past = d.ms.every(m => m.res) && d.k < today;
+    return `<div class="day ${past ? 'past' : ''}"><h3>${fMD(d.t)} <small>${fWk(d.t)}</small>${d.k === today ? '<span class="today">今天</span>' : ''}</h3><div class="day-list">${d.ms.map(m => {
+      const {a, b} = resolve(m), w = m.res && m.res.w;
+      const t = (id, side) => `<span class="rt ${side} ${w && w !== id ? 'l' : ''}">${logo(id)}${id ? short(id) : '<span style="color:var(--faint);font-weight:500">待定</span>'}</span>`;
+      const mid = m.live ? `<span class="rs" style="color:var(--lose)">${m.ga}:${m.gb}</span>` : m.res ? `<span class="rs">${scoreAB(m)}</span>` : '<span class="rs" style="color:var(--faint);font-size:12px">vs</span>';
+      const st = m.live ? '<span class="stt live">LIVE</span>' : m.res ? '<span class="stt">已结束</span>' : `<span class="stt">BO${m.bo}</span>`;
+      return `<div class="srow ${m.res ? 'done' : ''}"><span class="t">${fTime(m.t)}</span><span class="stg">${stageLabel(m).replace(/ · BO\d/, '')}</span><span class="teams">${t(a, 'a')}${mid}${t(b, 'b')}</span>${st}</div>`;
+    }).join('')}</div></div>`;
+  }).join('');
+}
+function renderLive(){
+  const all = LIVE.concat(S.links.map((l, i) => ({name:l.name, short:l.name.slice(0, 1), color:'#3a4558', note:'自定义', url:l.url, own:i})));
+  $('lgrid').innerHTML = all.map(l => `<a class="lcard" href="${esc(l.url)}" target="_blank" rel="noopener"><span class="lic" style="background:${l.color}">${esc(l.short)}</span><div><b>${esc(l.name)}</b><small>${esc(l.note)}</small></div>${l.own !== undefined ? `<button class="x" data-del="${l.own}" aria-label="删除">×</button>` : ''}</a>`).join('');
+}
+
+/* ---------- share ---------- */
+function predSummary(M){
+  const rec = M.sw.rec;
+  const adv = M.sw.rounds.length ? M.ids.filter(id => rec[id].w === 3).sort((a, b) => rec[a].l - rec[b].l) : [];
+  return {adv, ko: M.ko, pi: M.pi};
+}
+function renderPoster(M){
+  const {adv, ko, pi} = predSummary(M), rec = M.sw.rec;
+  const logos = (ids, sub) => `<div class="plogos">${ids.map(id => `<span>${logo(id)}${short(id)}${sub ? `<em style="font-style:normal;color:var(--faint)">${sub(id)}</em>` : ''}</span>`).join('')}</div>`;
+  let h = '<div class="eb">2026 英雄联盟全球总决赛 · 我的预测</div>';
+  if (ko.champ) {
+    h += `<div class="champ">${logo(ko.champ)}<span class="tt">${ko.champ}</span><small>冠军 · 决赛 ${scoreAB(ko.f)} 击败 ${ko.runnerUp}</small></div>`;
+    h += `<div class="prow"><small>四强</small>${logos(ko.sf.flatMap(m => [m.a, m.b]))}</div>`;
+  } else h += '<p class="sub" style="margin:18px auto 4px">还没预测到冠军。打开预测开关后，在各阶段点选未开赛比赛的胜者。</p>';
+  if (adv.length) h += `<div class="prow"><small>瑞士轮晋级</small>${logos(adv, id => rec[id].w + '-' + rec[id].l)}</div>`;
+  if (pi.champ) h += `<div class="prow"><small>入围赛冠军</small>${logos([pi.champ])}</div>`;
+  $('poster').innerHTML = h;
+}
+function summaryText(M){
+  const {adv, ko, pi} = predSummary(M), rec = M.sw.rec, L = ['我的 S16 预测'];
+  if (ko.champ) { L.push('冠军：' + ko.champ + '（决赛 ' + ko.f.a + ' ' + scoreAB(ko.f) + ' ' + ko.f.b + '）'); L.push('四强：' + ko.sf.flatMap(m => [m.a, m.b]).join(' / ')); }
+  if (adv.length) L.push('瑞士轮晋级：' + adv.map(id => id + ' ' + rec[id].w + '-' + rec[id].l).join('，'));
+  if (pi.champ) L.push('入围赛冠军：' + pi.champ);
+  if (L.length === 1) L.push('还没开始预测。');
+  return L.join('\n');
+}
+const encodeCode = () => btoa(unescape(encodeURIComponent(JSON.stringify({v:2, p:S.picks, q:S.qfSeed}))));
+
+/* ---------- render loop ---------- */
+let MODEL;
+function renderAll(){
+  MODEL = compute();
+  $('pred').checked = S.pred; $('open-share').hidden = !S.pred; $('btn-sim').hidden = !S.pred;
+  $('updated').textContent = (LIVE_DATA ? '实时数据，' : '数据快照，') + '更新于 ' + fMD(DATA_AT) + ' ' + fTime(DATA_AT) + '（' + tzLabel() + '）';
+  renderHero(); renderPI(MODEL); renderPots(MODEL); renderFlow(MODEL); renderStand(MODEL); renderKO(MODEL); renderSchedule();
+  if (!$('share').hidden) renderPoster(MODEL);
+  clearTimeout(simTimer);
+  simTimer = setTimeout(() => { const M = MODEL; SIM = simulate(M, 2000); if (M === MODEL) renderStand(M); }, 40);
+}
+function redraw(){ drawPI(); drawSwiss(); drawKO(); }
+
+/* ---------- actions ---------- */
+function pick(key, team, bo){
+  if (!S.pred || !key) return;
+  const cur = S.picks[key];
+  if (cur && cur.w === team) delete S.picks[key]; else S.picks[key] = {w: team, s: DEF_SCORE[bo]};
+  save(); renderAll();
+}
+function simulateRest(){
+  Object.keys(S.picks).forEach(k => { if (S.picks[k].auto) delete S.picks[k]; });
+  const manual = Object.keys(S.picks), seed = () => (Math.random() * 1e9) | 0;
+  if (!manual.some(k => /^r\d/.test(k))) S.drawSeed = seed();
+  if (!manual.some(k => /^(qf|sf|f)\d/.test(k))) S.qfSeed = seed();
+  const rng = mulberry32(seed());
+  for (let i = 0; i < 14; i++) {
+    const M = compute(), pend = [];
+    PI_ORDER.forEach(n => { const m = M.pi.nodes[n]; if (m.a && m.b && !m.res) pend.push(m); });
+    const last = M.sw.rounds[M.sw.rounds.length - 1];
+    if (last) last.matches.forEach(m => { if (!m.res && !m.live) pend.push(m); });
+    if (M.ko.ready) [...M.ko.qf, ...M.ko.sf, M.ko.f].forEach(m => { if (m.key && !m.res && !m.live) pend.push(m); });
+    if (!pend.length) break;
+    pend.forEach(m => { S.picks[m.key] = Object.assign(samplePick(m.a, m.b, m.bo, rng), {auto: true}); });
+  }
+  save(); renderAll(); toast('已按实力模拟全部未开赛比赛，再点一次换一组结果');
+}
+function setScore(key, s){ if (S.picks[key]) { S.picks[key].s = s; save(); renderAll(); } }
+function currentStage(){
+  const now = Date.now(), last = st => Math.max(...MATCHES.filter(m => m.st === st).map(m => m.t));
+  if (now < last('pi') + 6 * 3600e3) return 'pi';
+  if (now < last('swiss') + 6 * 3600e3) return 'swiss';
+  return 'ko';
+}
+function setTab(t){
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  ['pi', 'swiss', 'ko', 'schedule'].forEach(k => $('p-' + k).hidden = k !== t);
+  requestAnimationFrame(redraw);
+}
+function openModal(id){ if (id === 'share') renderPoster(MODEL); if (id === 'live') renderLive(); $(id).hidden = false; const c = $(id).querySelector('[data-close]'); c && c.focus(); }
+function closeModals(){ ['live', 'share'].forEach(id => $(id).hidden = true); }
+let toastTimer;
+function toast(msg){
+  let el = document.querySelector('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 2200);
+}
+async function copy(text, okMsg){
+  try { await navigator.clipboard.writeText(text); toast(okMsg); }
+  catch (e) { const ta = $('code'); ta.closest('details').open = true; ta.value = text; ta.select(); toast('浏览器不允许自动复制，已选中，请手动复制'); }
+}
+let clearArmed = null;
+document.addEventListener('click', e => {
+  const t = e.target;
+  const el = t.closest('[data-key][data-team]'); if (el) { pick(el.dataset.key, el.dataset.team, +el.dataset.bo); return; }
+  const cy = t.closest('[data-cycle]'); if (cy) { const p = S.picks[cy.dataset.cycle]; if (p) setScore(cy.dataset.cycle, p.s === '2-0' ? '2-1' : '2-0'); return; }
+  const ss = t.closest('[data-setscore]'); if (ss) { setScore(ss.dataset.setscore, ss.dataset.s); return; }
+  const tab = t.closest('[data-tab]'); if (tab) { setTab(tab.dataset.tab); return; }
+  const op = t.closest('[data-open]'); if (op) { openModal(op.dataset.open); return; }
+  const del = t.closest('[data-del]'); if (del) { e.preventDefault(); S.links.splice(+del.dataset.del, 1); save(); renderLive(); return; }
+  if (t.closest('[data-close]') || t.classList.contains('modal')) { closeModals(); return; }
+  const id = (t.closest('button') || {}).id;
+  if (id === 'open-live') openModal('live');
+  else if (id === 'open-share') openModal('share');
+  else if (id === 'btn-qf') { S.qfSeed = (Math.random() * 1e9) | 0; save(); renderAll(); }
+  else if (id === 'btn-redraw') { S.drawSeed = (Math.random() * 1e9) | 0; save(); renderAll(); toast('已重新模拟首轮抽签'); }
+  else if (id === 'btn-sim') simulateRest();
+  else if (id === 'btn-clear') {
+    const b = $('btn-clear');
+    if (clearArmed) { clearTimeout(clearArmed); clearArmed = null; S.picks = {}; save(); renderAll(); b.textContent = '清空预测'; b.classList.remove('danger'); toast('已清空全部预测'); }
+    else { b.textContent = '再点一次确认'; b.classList.add('danger'); clearArmed = setTimeout(() => { clearArmed = null; b.textContent = '清空预测'; b.classList.remove('danger'); }, 3000); }
+  }
+  else if (id === 'btn-copytext') copy(summaryText(MODEL), '已复制文字版');
+  else if (id === 'btn-copycode') copy(encodeCode(), '已复制预测码');
+  else if (id === 'btn-import') {
+    try {
+      const d = JSON.parse(decodeURIComponent(escape(atob($('code').value.trim()))));
+      if (!d || typeof d.p !== 'object') throw 0;
+      S.picks = d.p; if (d.q) S.qfSeed = d.q; S.pred = true;
+      save(); renderAll(); renderPoster(MODEL); $('importmsg').textContent = '导入成功。';
+    } catch (err) { $('importmsg').textContent = '无法识别这段预测码，请确认复制完整。'; }
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+$('pred').addEventListener('change', e => { S.pred = e.target.checked; save(); renderAll(); toast(S.pred ? '预测已开启：点选未开赛比赛的胜者' : '已切回真实赛况'); });
+$('flow').addEventListener('mouseover', e => { const el = e.target.closest('[data-tm]'); highlight(el ? el.dataset.tm : null); });
+$('flow').addEventListener('mouseleave', () => highlight(null));
+$('addform').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('ln').value.trim(), url = $('lu').value.trim();
+  if (!/^https?:\/\//i.test(url)) return toast('链接需要以 http:// 或 https:// 开头');
+  S.links.push({name, url}); save(); $('ln').value = ''; $('lu').value = ''; renderLive(); toast('已添加');
+});
+$('tz').addEventListener('change', e => { S.tz = e.target.value; save(); renderAll(); });
+window.addEventListener('resize', redraw);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+
+/* ---------- boot ---------- */
+$('tz').value = S.tz;
+const STAGE_NOW = currentStage();
+document.querySelector(`#tabs [data-tab="${STAGE_NOW}"]`).insertAdjacentHTML('beforeend', '<i class="now" title="当前阶段"></i>');
+renderAll();
+const hashTab = location.hash.slice(1);
+setTab(['pi', 'swiss', 'ko', 'schedule'].includes(hashTab) ? hashTab : STAGE_NOW);
+setInterval(tick, 1000);
+refreshLive();
+</script>

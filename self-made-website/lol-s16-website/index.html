@@ -10,316 +10,459 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Noto+Serif+SC:wght@700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap">
 <style>
-/* Layout: one dark arena surface. Next-match hero + latest results, then the current stage drawn as a
-   left-to-right flowchart (cards joined by win/loss arrows). Real results are solid; optional predictions are gold. */
+/* Layout: sports-magazine issue. Dark scoreboard ticker, white masthead, a dark "cover" for the next match,
+   then each stage as a feature spread: kicker + serif headline, flowchart, box-score tables. One cobalt accent. */
 :root{
-  --bg:#090c12; --panel:#0f141c; --panel-2:#151b26; --hover:#1c2331;
-  --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.14);
-  --fg:#eef1f5; --muted:#8a93a3; --faint:#5a6476;
-  --gold:#d2ac60; --gold-soft:rgba(210,172,96,.14); --gold-ink:#17120a;
-  --win:#3cc79b; --win-soft:rgba(60,199,155,.13); --lose:#ec6169; --lose-soft:rgba(236,97,105,.12);
-  --f-tag:"Saira Semi Condensed","Noto Sans SC",system-ui,sans-serif;
+  --paper:#ffffff; --paper-2:#f3f3f1; --paper-3:#e8e8e4;
+  --ink:#111114; --ink-2:#2d2d34; --mute:#6c6c75; --faint:#a1a1a8;
+  --rule:#e3e3df; --rule-2:#c6c6c1;
+  --night:#0e0e11; --night-2:#1b1b21; --night-line:rgba(255,255,255,.12); --night-mute:rgba(255,255,255,.56);
+  --accent:#2a45ff; --accent-soft:rgba(42,69,255,.08); --accent-ink:#ffffff;
+  --live:#ff2d3e; --win:#0b9467; --win-soft:rgba(11,148,103,.09); --lose:#e0414a; --lose-soft:rgba(224,65,74,.07);
+  --crest:#17171c;
+  --f-num:"Archivo","Noto Sans SC",system-ui,sans-serif;
+  --f-head:"Noto Serif SC","Songti SC",serif;
   --f-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
-  color-scheme:dark;
+  color-scheme:light;
 }
 *{box-sizing:border-box}
-html{background:var(--bg)}
-body{background:radial-gradient(1100px 420px at 50% -240px,rgba(210,172,96,.08),transparent 70%),var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.55;min-height:100vh}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
-.wrap{max-width:1400px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+html{background:var(--paper)}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+.wrap{max-width:1360px;margin:0 auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
 @media (max-width:600px){.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
 button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
 a{color:inherit}
-:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
-h1,h2,h3{margin:0;font-weight:700;letter-spacing:.01em;text-wrap:balance}
-h1{font-size:26px}
-h2{font-size:18px}
-h3{font-size:13px;font-weight:500;color:var(--muted)}
-.sub{margin:4px 0 0;color:var(--muted);font-size:13px;max-width:70ch}
-.lg{width:22px;height:22px;object-fit:contain;flex:none;display:block}
-.mono{width:22px;height:22px;border-radius:50%;border:1px dashed var(--line-2);display:grid;place-items:center;font:600 11px var(--f-tag);color:var(--muted);flex:none}
-.ghost{width:20px;height:20px;border-radius:50%;border:1px dashed var(--line-2);flex:none;display:block}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{margin:0;text-wrap:balance}
+.num{font-family:var(--f-num);font-stretch:75%;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.005em}
+.kicker{font-family:var(--f-num);font-stretch:118%;font-weight:800;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
 
-/* header */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(9,12,18,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.top-in{display:flex;align-items:center;gap:28px;height:60px}
-.brand{display:flex;align-items:center;gap:9px;flex:none}
-.brand svg{width:22px;height:22px;color:var(--gold)}
-.brand b{font-family:var(--f-tag);font-size:19px;font-weight:700;letter-spacing:.06em}
-.brand b span{color:var(--gold)}
-.tabs{display:flex;gap:2px;height:100%}
-.tabs button{position:relative;padding:0 14px;color:var(--muted);font-weight:500;height:100%;white-space:nowrap}
-.tabs button:hover{color:var(--fg)}
-.tabs button[aria-selected="true"]{color:var(--fg)}
-.tabs button[aria-selected="true"]::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:var(--gold);border-radius:2px}
-.tabs button .now{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--lose);margin-left:6px;vertical-align:2px}
+/* crests: logos sit on a dark badge so white wordmarks read on paper */
+.crest{--s:24px;width:var(--s);height:var(--s);border-radius:calc(var(--s) * .22);background:var(--crest);display:grid;place-items:center;flex:none;position:relative}
+.crest img{width:76%;height:76%;object-fit:contain;display:block}
+.crest.ph{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule-2)}
+.crest.q{color:#fff;font:800 calc(var(--s) * .44) var(--f-num)}
+.crest.fo::after{content:"";position:absolute;inset:-3px;border-radius:calc(var(--s) * .22 + 3px);box-shadow:0 0 0 2px var(--accent)}
+.bare{background:transparent}
+.bare.ph{box-shadow:inset 0 0 0 1.5px var(--night-line)}
+
+/* ticker */
+.ticker{background:var(--night);color:#fff;border-bottom:1px solid var(--night-line)}
+.ticker-in{position:relative;display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:none}
+.ticker-in::-webkit-scrollbar{display:none}
+.tk-label{position:sticky;left:0;z-index:2;background:var(--night);flex:none;display:flex;flex-direction:column;justify-content:center;padding:10px 18px 10px 0;margin-right:4px;border-right:1px solid var(--night-line)}
+.tk-label b{font:900 15px var(--f-num);font-stretch:118%;letter-spacing:.06em}
+.tk-label small{font-size:11px;color:var(--night-mute)}
+.chip{flex:none;width:176px;padding:9px 14px;border-right:1px solid var(--night-line);text-align:left;display:flex;flex-direction:column;gap:3px;transition:background .15s}
+.chip:hover{background:var(--night-2)}
+.chip .cm{display:flex;justify-content:space-between;font-size:10.5px;color:var(--night-mute);letter-spacing:.04em}
+.chip .cm .lv{color:var(--live);font-weight:700;letter-spacing:.12em}
+.chip .cr{display:flex;align-items:center;gap:8px;font:800 14px var(--f-num);font-stretch:85%;letter-spacing:.02em}
+.chip .cr .crest{--s:18px}
+.chip .cr .sc{margin-left:auto;font-variant-numeric:tabular-nums}
+.chip .cr.l{color:var(--night-mute)}
+.chip .cr.l .crest{opacity:.5}
+.chip.fol{box-shadow:inset 0 3px 0 var(--accent)}
+
+/* masthead */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:2px solid var(--ink)}
+.top-in{display:flex;align-items:center;gap:30px;height:62px}
+.brand{display:flex;align-items:baseline;gap:8px;flex:none;text-decoration:none}
+.brand b{font:900 28px/1 var(--f-num);font-stretch:125%;letter-spacing:-.01em}
+.brand b i{font-style:normal;color:var(--accent)}
+.brand span{font:700 13px var(--f-body);letter-spacing:.08em}
+.tabs{display:flex;gap:4px;height:100%}
+.tabs button{position:relative;padding:0 14px;height:100%;font-weight:500;font-size:15px;color:var(--mute);white-space:nowrap}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--ink);font-weight:700}
+.tabs button[aria-selected="true"]::after{content:"";position:absolute;left:14px;right:14px;bottom:-2px;height:4px;background:var(--accent)}
+.tabs .now{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--live);margin-left:6px;vertical-align:3px}
 .tools{margin-left:auto;display:flex;align-items:center;gap:10px}
-.switch{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--muted);user-select:none;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:999px;border:1.5px solid var(--ink);font-size:13px;font-weight:700;white-space:nowrap;text-decoration:none;transition:background .15s,color .15s}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.solid{background:var(--ink);color:var(--paper)}
+.btn.solid:hover{background:var(--accent);border-color:var(--accent)}
+.btn.acc{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.acc:hover{filter:brightness(1.1)}
+.btn.ghost{border-color:transparent;color:var(--mute)}
+.btn.ghost:hover{background:var(--paper-2);color:var(--ink)}
+.btn.danger{border-color:var(--lose);color:var(--lose)}
+.btn .stack{display:inline-flex}
+.btn .stack .crest{--s:18px;margin-left:-5px;box-shadow:0 0 0 2px var(--paper)}
+.btn .stack .crest:first-child{margin-left:0}
+.btn .stack .crest.fo::after{display:none}
+.switch{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;user-select:none;white-space:nowrap}
 .switch input{position:absolute;opacity:0;width:1px;height:1px}
-.switch i{width:34px;height:20px;border-radius:999px;background:var(--panel-2);box-shadow:inset 0 0 0 1px var(--line-2);position:relative;transition:background .15s}
-.switch i::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
-.switch input:checked + i{background:var(--gold);box-shadow:none}
-.switch input:checked + i::after{transform:translateX(14px);background:var(--gold-ink)}
-.switch input:focus-visible + i{outline:2px solid var(--gold);outline-offset:2px}
-.switch input:checked ~ span{color:var(--gold)}
-.pill-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid var(--line-2);font-size:13px;font-weight:500;white-space:nowrap;text-decoration:none}
-.pill-btn:hover{border-color:var(--fg)}
-.pill-btn.gold{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
-.pill-btn.gold:hover{filter:brightness(1.07)}
-.pill-btn.quiet{border-color:transparent;color:var(--muted)}
-.pill-btn.quiet:hover{color:var(--fg)}
-.pill-btn.danger{border-color:var(--lose);color:var(--lose)}
-@media (max-width:600px){.wide{display:none}.tools .pill-btn{padding:6px 11px}.switch span{display:none}}
-@media (max-width:820px){
+.switch i{width:36px;height:21px;border-radius:999px;background:var(--paper-3);position:relative;transition:background .15s}
+.switch i::after{content:"";position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:var(--paper);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.switch input:checked + i{background:var(--accent)}
+.switch input:checked + i::after{transform:translateX(15px)}
+.switch input:focus-visible + i{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:900px){
   .top-in{height:auto;flex-wrap:wrap;gap:0 12px;padding-top:10px}
-  .tabs{order:3;width:100%;height:44px;overflow-x:auto;scrollbar-width:none}
-  .tabs button{padding:0 12px}
-  .tools{gap:8px}
+  .tabs{order:3;width:100%;height:44px;overflow-x:auto;scrollbar-width:none;margin:0 -14px}
+  .tools{gap:6px}
 }
+@media (max-width:600px){.wide{display:none}.tools .btn{padding:6px 11px}.switch span{display:none}.brand span{display:none}}
 
-/* hero */
-.hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px;margin:20px 0 0}
-@media (max-width:900px){.hero{grid-template-columns:minmax(0,1fr)}}
-.card{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:18px 20px}
-.next{display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(420px 200px at 50% 0,rgba(210,172,96,.10),transparent),var(--panel)}
-.nx-k{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;flex-wrap:wrap}
-.badge{font:700 11px var(--f-tag);letter-spacing:.14em;padding:2px 8px;border-radius:4px;background:var(--panel-2);color:var(--muted)}
-.badge.live{background:var(--lose);color:#fff;display:inline-flex;align-items:center;gap:6px}
-.badge.live::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.4s infinite}
-@keyframes pulse{50%{opacity:.25}}
-@media (prefers-reduced-motion:reduce){.badge.live::before{animation:none}}
-.nx-teams{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px;margin:18px 0 16px}
-.nx-team{display:flex;align-items:center;gap:14px;font:700 24px var(--f-tag);letter-spacing:.03em;min-width:0}
-.nx-team.b{flex-direction:row-reverse}
-.nx-team .lg,.nx-team .mono,.nx-team .ghost{width:52px;height:52px}
-.nx-team small{display:block;font:400 12px var(--f-body);color:var(--muted);letter-spacing:0}
-.nx-team.b div{text-align:right}
-.nx-mid{text-align:center}
-.nx-mid b{display:block;font:600 30px var(--f-tag);font-variant-numeric:tabular-nums;line-height:1.1}
-.nx-mid small{color:var(--muted);font-size:12px}
-.nx-mid.live b{color:var(--lose)}
-@media (max-width:600px){.nx-team{font-size:18px;gap:8px}.nx-team .lg,.nx-team .mono,.nx-team .ghost{width:38px;height:38px}.nx-team small{display:none}.nx-mid b{font-size:22px}.nx-mid small{display:block;font-size:11px;max-width:80px;margin:0 auto}.nx-teams{gap:8px}}
-.nx-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px}
-.cd{font-family:var(--f-tag);font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
-.cd b{color:var(--fg);font-size:18px;font-weight:600;margin:0 2px}
-.watch-row{display:flex;gap:8px;flex-wrap:wrap}
-.recent h3{margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-.fresh{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--faint);font-weight:400}
-.fresh.on{color:var(--win)}
-.fresh.on::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--win)}
-.rrow{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
-.rrow:first-of-type{border-top:0}
-.rrow .when{font-size:11.5px;color:var(--faint);line-height:1.35}
-.rline{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);align-items:center}
-.rt{display:flex;align-items:center;gap:8px;font:600 14px var(--f-tag);min-width:0}
-.rt.b{flex-direction:row-reverse}
-.rt.l{opacity:.4}
-.rs{text-align:center;font:600 15px var(--f-tag);font-variant-numeric:tabular-nums}
+/* cover */
+.cover{background:var(--night);color:#fff;position:relative;overflow:hidden}
+.cover::before{content:"VS";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);font:900 340px/1 var(--f-num);font-stretch:125%;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.06);pointer-events:none}
+.cover::after{content:"";position:absolute;right:-80px;top:-40px;width:280px;height:140%;background:var(--accent);transform:skewX(-14deg);opacity:.9;pointer-events:none}
+.cover-in{position:relative;z-index:1;padding-block:28px 26px}
+.cv-k{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--night-mute)}
+.cv-k .kicker{color:#fff}
+.live-tag{display:inline-flex;align-items:center;gap:6px;background:var(--live);color:#fff;font:800 11px var(--f-num);font-stretch:118%;letter-spacing:.16em;padding:3px 9px 3px 8px}
+.live-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.3s infinite}
+@keyframes pulse{50%{opacity:.2}}
+.vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:24px;margin:22px 0 22px;max-width:1040px}
+.vs .side{display:flex;align-items:center;gap:22px;min-width:0}
+.vs .side.b{flex-direction:row-reverse;text-align:right}
+.vs .side .crest{--s:104px;border-radius:0}
+.vs .code{display:block;font:900 92px/0.9 var(--f-num);font-stretch:72%;letter-spacing:-.01em}
+.vs .name{display:block;color:var(--night-mute);font-size:13px;margin-top:6px}
+.vs .side.fo .code{color:#9fb0ff}
+.vs .mid{text-align:center;padding:0 10px}
+.vs .mid b{display:block;font:900 64px/1 var(--f-num);font-stretch:75%;font-variant-numeric:tabular-nums}
+.vs .mid.live b{color:#fff}
+.vs .mid small{display:block;color:var(--night-mute);font-size:12.5px;margin-top:6px}
+.cv-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--night-line);max-width:1040px}
+.cd{font-size:13px;color:var(--night-mute)}
+.cd b{font:800 22px var(--f-num);font-stretch:75%;color:#fff;margin:0 3px;font-variant-numeric:tabular-nums}
+.cv-btns{display:flex;gap:8px;flex-wrap:wrap}
+.cover .btn{border-color:rgba(255,255,255,.5);color:#fff}
+.cover .btn:hover{background:#fff;color:var(--night)}
+.cover .btn.acc{background:#fff;color:var(--night);border-color:#fff}
+.cover .btn.acc:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+@media (max-width:900px){.cover::after{display:none}.vs{gap:10px}.vs .side{gap:12px}.vs .side .crest{--s:60px}.vs .code{font-size:52px}.vs .mid b{font-size:40px}.cover::before{font-size:200px}}
+@media (max-width:600px){.vs .name{display:none}.vs .side{flex-direction:column;align-items:center;text-align:center}.vs .side.b{flex-direction:column;text-align:center}.vs .code{font-size:40px}.vs .side .crest{--s:52px}.vs .mid b{font-size:32px}}
+@media (prefers-reduced-motion:reduce){.live-tag::before{animation:none}}
 
-/* panels */
-.panel{padding:30px 0 40px}
-.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
-.ph.second{margin:44px 0 14px}
-.ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.legend{display:flex;gap:18px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:12px;margin-bottom:12px}
-.legend span{display:inline-flex;align-items:center;gap:7px}
-.legend i{width:18px;height:2px;border-radius:2px;display:block}
-.legend .w i{background:var(--win)}.legend .l i{background:var(--lose)}
-.legend .p i{height:10px;width:16px;border-radius:3px;background:var(--gold-soft);outline:1px dashed var(--gold);outline-offset:-1px}
+/* follow strip */
+.followbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:14px;border-bottom:1px solid var(--rule)}
+.followbar .lbl{font:800 11.5px var(--f-num);font-stretch:118%;letter-spacing:.18em;color:var(--mute);margin-right:4px}
+.fchip{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;background:var(--paper-2);font-size:12.5px;text-align:left}
+.fchip:hover{background:var(--paper-3)}
+.fchip .crest{--s:28px;border-radius:50%}
+.fchip .crest.fo::after{display:none}
+.fchip b{font:800 15px var(--f-num);font-stretch:85%}
+.fchip small{color:var(--mute)}
+.fchip.out{opacity:.55}
+.add-follow{display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-weight:700;font-size:13px}
+.add-follow:hover{text-decoration:underline}
+
+/* section heads */
+.panel{padding:44px 0 56px}
+.sec-h{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) auto;align-items:end;gap:12px 36px;padding-bottom:18px;margin-bottom:20px;border-bottom:2px solid var(--ink)}
+.sec-h h2{font:900 52px/1 var(--f-head);letter-spacing:.02em;margin-top:8px}
+.sec-h .dek{color:var(--ink-2);font-size:14px;max-width:56ch;margin:0;padding-bottom:4px}
+.sec-h .ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding-bottom:2px}
+@media (max-width:900px){.sec-h{grid-template-columns:minmax(0,1fr)}.sec-h h2{font-size:40px}.sec-h .ctrl{justify-content:flex-start}}
+.sub-h{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:48px 0 14px}
+.sub-h h3{font:900 26px/1.1 var(--f-head)}
+.sub-h p{margin:4px 0 0;color:var(--mute);font-size:13px;max-width:70ch}
+.tip{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:10px 14px;margin-bottom:16px;background:var(--paper-2);border-left:3px solid var(--ink);font-size:13px;color:var(--ink-2)}
+.tip b{font-weight:700;color:var(--ink)}
+.tip.acc{border-left-color:var(--accent);background:var(--accent-soft)}
+.tip.acc b{color:var(--accent)}
+.legend{display:flex;gap:20px;flex-wrap:wrap;align-items:center;color:var(--mute);font-size:12px;margin-bottom:14px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:22px;height:2px;display:block}
+.legend .w i{background:var(--ink)}
+.legend .l i{background:var(--lose)}
+.legend .p i{height:12px;width:18px;border:1.5px dashed var(--accent)}
 .legend .hint{margin-left:auto;color:var(--faint)}
-@media (max-width:820px){.legend .hint{margin-left:0}}
-.pred-tip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;padding:10px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);margin-bottom:14px}
-.pred-tip b{color:var(--gold);font-weight:500}
-.scroll-x{overflow-x:auto;margin:0 -4px;padding:4px 4px 10px;scrollbar-color:var(--line-2) transparent}
+@media (max-width:900px){.legend .hint{margin-left:0}}
+.scroll-x{overflow-x:auto;margin:0 -6px;padding:6px 6px 14px;scrollbar-color:var(--rule-2) transparent}
 
-/* edges (shared) */
+/* edges */
 svg.edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
-.edges path{fill:none;stroke-width:1.5;opacity:.42;transition:opacity .15s,stroke-width .15s}
-.edges path.w{stroke:var(--win)}.edges path.l{stroke:var(--lose)}.edges path.n{stroke:var(--line-2);opacity:1}
-.edges path.on{opacity:.95}
-.edges path.pr{stroke:var(--gold);stroke-dasharray:4 4;opacity:.9}
-.mk-w path{fill:var(--win)}.mk-l path{fill:var(--lose)}.mk-n path{fill:rgba(255,255,255,.22)}.mk-g path{fill:var(--gold)}
+.edges path{fill:none;stroke-width:1.6;opacity:.5;transition:opacity .15s,stroke-width .15s}
+.edges path.w{stroke:var(--ink)}.edges path.l{stroke:var(--lose)}.edges path.n{stroke:var(--rule-2);opacity:1}
+.edges path.on{opacity:.9}
+.edges path.pr{stroke:var(--accent);stroke-dasharray:5 4;opacity:.9}
+.mk-w path{fill:var(--ink)}.mk-l path{fill:var(--lose)}.mk-n path{fill:var(--rule-2)}.mk-g path{fill:var(--accent)}
 
-/* bracket cards (play-in + knockouts) */
-.kcard{position:relative;z-index:1;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:3px}
-.kcard.live{border-color:rgba(236,97,105,.5)}
-.kmeta{font-size:11px;color:var(--faint);padding:0 4px 5px;display:flex;justify-content:space-between;gap:8px}
-.kmeta .st{color:var(--muted)}
-.kmeta .st.live{color:var(--lose);font-weight:700;letter-spacing:.08em}
-.kmeta .st.pd{color:var(--gold)}
-.krow{display:flex;align-items:center;gap:9px;height:38px;padding:0 10px;border-radius:8px;background:var(--panel-2);font:600 14.5px var(--f-tag);letter-spacing:.03em;text-align:left;width:100%}
-.krow .lg,.krow .mono{width:24px;height:24px}
-.krow small{color:var(--faint);font-weight:500;font-size:11px}
-.krow .ks{margin-left:auto;font-size:16px;color:var(--muted);font-variant-numeric:tabular-nums}
-button.krow:hover{background:var(--hover)}
-.krow.win{background:var(--win-soft)}.krow.win .ks{color:var(--win)}
-.krow.lose{opacity:.38;filter:grayscale(1)}
-.krow.ph{color:var(--faint);font:500 12px var(--f-body)}
-.kcard.pred{border-style:dashed;border-color:rgba(210,172,96,.5)}
-.kcard.pred .krow.win{background:var(--gold-soft)}.kcard.pred .krow.win .ks{color:var(--gold)}
-.kscore{display:flex;gap:4px;padding:5px 2px 0}
-.kscore button{flex:1;padding:3px 0;border-radius:6px;font:600 12px var(--f-tag);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
-.kscore button[aria-pressed="true"]{color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
-.goal{position:relative;z-index:1;width:100%;border-radius:14px;padding:20px 14px;text-align:center;border:1px solid rgba(210,172,96,.45);background:radial-gradient(160px 120px at 50% 0,rgba(210,172,96,.18),transparent),var(--panel)}
-.goal .lg,.goal .mono{width:64px;height:64px;margin:4px auto 10px}
-.goal .tt{display:block;font:700 24px var(--f-tag);letter-spacing:.03em;line-height:1.1}
-.goal small{display:block;color:var(--muted);font-size:12px}
-.goal.ph{border-style:dashed;border-color:var(--line-2);background:var(--panel)}
-.goal.ph .ghost{width:56px;height:56px;margin:6px auto 10px}
-.goal.pd{border-style:dashed}
+/* bracket cards */
+.kcard{position:relative;z-index:1;width:100%;background:var(--paper);border:1px solid var(--rule-2);border-radius:6px;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.kcard:hover{transform:translateY(-1px);box-shadow:0 6px 18px -10px rgba(17,17,20,.35)}
+.kmeta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 12px;font-size:11px;color:var(--mute);border-bottom:1px solid var(--rule);background:var(--paper-2)}
+.kmeta .st.live{color:var(--live);font-weight:800;letter-spacing:.12em}
+.kmeta .st.pd{color:var(--accent);font-weight:700}
+.kmeta .more{color:var(--ink);font-weight:700}
+.kmeta .more:hover{color:var(--accent)}
+.krow{display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 12px;text-align:left;font:800 18px var(--f-num);font-stretch:82%;letter-spacing:.02em;border-top:1px solid var(--rule)}
+.krow:first-of-type{border-top:0}
+.krow .crest{--s:26px}
+.krow small{font:500 11px var(--f-body);color:var(--faint);letter-spacing:0}
+.krow .ks{margin-left:auto;font-size:22px;font-weight:900;font-stretch:75%;font-variant-numeric:tabular-nums;color:var(--faint)}
+button.krow:hover{background:var(--accent-soft)}
+.krow.win .ks{color:var(--ink)}
+.krow.lose{color:var(--faint)}
+.krow.lose .crest{opacity:.4;filter:grayscale(1)}
+.krow.ph{font:500 12.5px var(--f-body);color:var(--faint)}
+.krow.fo{color:var(--accent)}
+.kcard.live{border-color:var(--live);box-shadow:inset 0 3px 0 var(--live)}
+.kcard.pred{border:1.5px dashed var(--accent)}
+.kcard.pred .krow.win .ks{color:var(--accent)}
+.kcard.tap{cursor:pointer}
+.kscore{display:flex;gap:4px;padding:8px 10px;border-top:1px solid var(--rule)}
+.kscore button{flex:1;padding:4px 0;border-radius:4px;font:800 12.5px var(--f-num);font-stretch:85%;color:var(--mute);box-shadow:inset 0 0 0 1px var(--rule-2)}
+.kscore button[aria-pressed="true"]{color:var(--accent-ink);background:var(--accent);box-shadow:none}
+.goal{position:relative;z-index:1;width:100%;background:var(--night);color:#fff;border-radius:6px;padding:22px 16px 18px;text-align:center}
+.goal .crest{--s:76px;margin:2px auto 10px}
+.goal .tt{display:block;font:900 34px/1 var(--f-num);font-stretch:75%}
+.goal small{display:block;color:var(--night-mute);font-size:12px;margin-top:6px}
+.goal.ph{background:var(--paper);color:var(--mute);border:1.5px dashed var(--rule-2)}
+.goal.ph .crest{--s:60px}
+.goal.ph small{color:var(--faint)}
+.goal.pd{outline:2px dashed var(--accent);outline-offset:3px}
 
 /* play-in */
-.pi{position:relative;display:grid;grid-template-columns:repeat(5,214px);grid-template-rows:auto auto;column-gap:52px;row-gap:34px;width:max-content;margin:0 auto}
+.pi{position:relative;display:grid;grid-template-columns:repeat(5,224px);grid-template-rows:auto auto;column-gap:52px;row-gap:34px;width:max-content;margin:0 auto}
 .cell{display:flex;flex-direction:column;justify-content:center;gap:14px}
-.lane{position:absolute;left:-2px;font-size:11px;color:var(--faint);letter-spacing:.12em}
 
 /* swiss */
-.pots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:22px}
+.pots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--rule-2);border-radius:6px;overflow:hidden;margin-bottom:28px}
 @media (max-width:900px){.pots{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.pot{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px}
-.pot h3{display:flex;justify-content:space-between;margin-bottom:10px}
-.pot-teams{display:flex;gap:8px;flex-wrap:wrap}
-.pot-teams span{display:flex;flex-direction:column;align-items:center;gap:4px;width:52px;font:600 12px var(--f-tag);color:var(--muted)}
-.pot-teams .lg,.pot-teams .mono{width:32px;height:32px}
-.flow{position:relative;display:grid;grid-template-columns:repeat(6,196px);column-gap:34px;width:max-content;margin:0 auto}
-.col-h{font-size:11.5px;color:var(--faint);letter-spacing:.06em;padding:0 2px 10px;display:flex;justify-content:space-between}
-.col-h b{color:var(--muted);font-weight:500}
-.col{display:flex;flex-direction:column;gap:16px;min-height:560px}
-.box{position:relative;z-index:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px}
-.bh{display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px 8px}
-.bh b{font:700 15px var(--f-tag);letter-spacing:.08em}
-.bh span{font-size:11px;color:var(--muted)}
-.bh span.hot{color:var(--gold)}
-.rows{display:flex;flex-direction:column;gap:3px}
-.mrow{display:grid;grid-template-columns:minmax(0,1fr) 36px minmax(0,1fr);align-items:center;height:36px;border-radius:8px;background:var(--panel-2);transition:opacity .15s}
-.side{display:flex;align-items:center;gap:5px;height:100%;padding:0 5px;border-radius:8px;font:600 13.5px var(--f-tag);letter-spacing:.03em;min-width:0}
+.pot{padding:14px 16px;border-left:1px solid var(--rule)}
+.pot:first-child{border-left:0}
+.pot h4{margin:0 0 12px;font:800 12px var(--f-num);font-stretch:118%;letter-spacing:.18em;color:var(--mute)}
+.pot h4 b{color:var(--ink);font-size:20px;font-stretch:75%;letter-spacing:0;margin-right:6px}
+.pot-teams{display:flex;gap:12px;flex-wrap:wrap}
+.pot-teams span{display:flex;flex-direction:column;align-items:center;gap:6px;font:800 13px var(--f-num);font-stretch:85%}
+.pot-teams .crest{--s:40px}
+.flow{position:relative;display:grid;grid-template-columns:repeat(6,190px);column-gap:30px;width:max-content;margin:0 auto}
+.col-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 10px;font-size:11.5px;color:var(--mute)}
+.col-h b{font:800 13px var(--f-num);font-stretch:118%;letter-spacing:.14em;color:var(--ink)}
+.col{display:flex;flex-direction:column;gap:18px;min-height:580px}
+.box{position:relative;z-index:1;background:var(--paper);border:1px solid var(--rule-2);border-radius:6px;overflow:hidden}
+.bh{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--ink);color:#fff}
+.bh b{font:900 20px/1 var(--f-num);font-stretch:75%;letter-spacing:.02em}
+.bh span{font-size:10.5px;color:var(--night-mute);letter-spacing:.04em}
+.bh span.hot{color:#ffd23f}
+.rows{display:flex;flex-direction:column}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr);align-items:center;height:36px;border-top:1px solid var(--rule);transition:opacity .15s,background .15s}
+.mrow:first-child{border-top:0}
+.side{display:flex;align-items:center;gap:6px;height:100%;padding:0 7px;font:800 14px var(--f-num);font-stretch:82%;letter-spacing:.02em;min-width:0}
 .side.b{flex-direction:row-reverse}
-.side .lg,.side .mono{width:20px;height:20px}
+.side .crest{--s:21px}
 .side span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-button.side:hover{background:var(--hover)}
-.side.win{background:var(--win-soft)}
-.side.lose{opacity:.38;filter:grayscale(1)}
-.mid{display:grid;place-items:center;height:22px;font:600 12px var(--f-tag);color:var(--fg);font-variant-numeric:tabular-nums}
-.mid.t{color:var(--faint);font-size:11.5px;font-weight:500}
-.mid.live{color:var(--lose)}
-button.mid{border-radius:5px;background:var(--bg);box-shadow:inset 0 0 0 1px rgba(210,172,96,.5);color:var(--gold)}
-.mrow.pred{outline:1px dashed rgba(210,172,96,.55);outline-offset:-1px}
-.mrow.pred .side.win{background:var(--gold-soft)}
-.mrow.pred .mid{color:var(--gold)}
-.mrow.sim:not(.pred){outline:1px dashed var(--line-2);outline-offset:-1px;background:transparent}
-.mrow.ph{background:rgba(255,255,255,.015)}
-.mrow.ph .ghost{width:18px;height:18px}
-.mrow.ph i.bar{display:block;width:26px;height:4px;border-radius:2px;background:var(--line)}
-.box.res{padding:8px 8px 10px}
-.box.res.adv{border-color:rgba(60,199,155,.32);background:linear-gradient(180deg,var(--win-soft),var(--panel) 80%)}
-.box.res.elim{border-color:rgba(236,97,105,.22);background:linear-gradient(180deg,var(--lose-soft),var(--panel) 80%)}
-.box.res.adv .bh span{color:var(--win)}
+button.side:hover{background:var(--accent-soft)}
+.side.lose{color:var(--faint)}
+.side.lose .crest{opacity:.4;filter:grayscale(1)}
+.side.fo span{color:var(--accent)}
+.mid{display:grid;place-items:center;height:22px;font:900 13px var(--f-num);font-stretch:80%;font-variant-numeric:tabular-nums}
+.mid.t{color:var(--mute);font-weight:600;font-size:11.5px}
+.mid.live{color:var(--live)}
+button.mid{border-radius:4px;background:var(--accent);color:var(--accent-ink)}
+.mrow.pred{background:var(--accent-soft)}
+.mrow.pred .mid{color:var(--accent)}
+.mrow.pred button.mid{color:var(--accent-ink)}
+.mrow.sim:not(.pred){background:repeating-linear-gradient(-45deg,transparent 0 6px,rgba(17,17,20,.025) 6px 12px)}
+.mrow.tap{cursor:pointer}
+.mrow.tap:hover{background:var(--paper-2)}
+.mrow.ph .crest{--s:18px}
+.mrow.ph i.bar{display:block;width:26px;height:4px;border-radius:2px;background:var(--rule)}
+.box.res .bh{background:var(--win)}
+.box.res.elim{background:var(--paper-2);border-color:var(--rule)}
+.box.res.elim .bh{background:var(--paper-3);color:var(--lose)}
 .box.res.elim .bh span{color:var(--lose)}
-.slots{display:flex;gap:6px;padding:0 2px}
-.slot{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0 2px;border-radius:8px;font:600 11.5px var(--f-tag);color:var(--muted);min-width:0}
-.slot .lg,.slot .ghost,.slot .mono{width:28px;height:28px}
-.slot.pd .lg{opacity:.7}
-.slot.pd{color:var(--gold)}
-.box.res.elim .slot .lg{filter:grayscale(1);opacity:.55}
-.flow.hl-on .mrow:not(.hl),.flow.hl-on .slot:not(.hl){opacity:.22}
-.flow.hl-on .edges path{opacity:.08}
-.flow.hl-on .edges path.hl{opacity:1;stroke-width:2.4}
-.flow.hl-on .side.me{background:var(--hover);opacity:1;filter:none}
+.box.res.adv{background:var(--night);border-color:var(--night)}
+.box.res.adv .bh span{color:#fff}
+.slots{display:flex;gap:4px;padding:10px 6px}
+.slot{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;font:800 12.5px var(--f-num);font-stretch:85%;min-width:0}
+.slot .crest{--s:32px}
+.box.res.adv .slot{color:#fff}
+.box.res.adv .slot .crest{background:transparent}
+.box.res.adv .slot .crest.ph{box-shadow:inset 0 0 0 1.5px var(--night-line)}
+.box.res.elim .slot{color:var(--mute)}
+.box.res.elim .slot .crest:not(.ph){opacity:.55;filter:grayscale(1)}
+.slot.pd{color:var(--accent)!important}
+.flow.hl-on .mrow:not(.hl),.flow.hl-on .slot:not(.hl){opacity:.18}
+.flow.hl-on .edges path{opacity:.06}
+.flow.hl-on .edges path.hl{opacity:1;stroke-width:2.6}
+.flow.hl-on .side.me{background:var(--accent-soft);opacity:1;filter:none;color:var(--ink)}
 
 /* standings */
-.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
-table{border-collapse:collapse;width:100%;min-width:680px}
-th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font-size:11.5px;color:var(--faint);font-weight:500;letter-spacing:.06em}
-tbody tr:last-child td{border-bottom:0}
-td.rk{color:var(--faint);font:600 13px var(--f-tag);width:36px}
-.tm{display:flex;align-items:center;gap:10px}
-.tm .lg,.tm .mono{width:26px;height:26px}
-.tm b{font:600 15px var(--f-tag);letter-spacing:.03em;min-width:44px}
-.tm small{color:var(--muted);font-size:12px}
-.rec{display:flex;align-items:center;gap:10px}
-.rec b{font:600 15px var(--f-tag);font-variant-numeric:tabular-nums;width:26px}
+.table-scroll{overflow-x:auto;border-top:2px solid var(--ink)}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{padding:0 14px;height:54px;text-align:left;border-bottom:1px solid var(--rule);white-space:nowrap}
+th{height:38px;font:800 11px var(--f-num);font-stretch:118%;letter-spacing:.16em;color:var(--mute)}
+td.rk{font:900 22px var(--f-num);font-stretch:75%;color:var(--faint);width:48px}
+tr.fo td.rk{color:var(--accent)}
+.tm{display:flex;align-items:center;gap:12px}
+.tm .crest{--s:32px}
+.tm b{font:900 19px var(--f-num);font-stretch:78%;min-width:48px}
+.tm small{color:var(--mute);font-size:12.5px}
+.rec{display:flex;align-items:center;gap:12px}
+.rec b{font:900 22px var(--f-num);font-stretch:75%;width:30px;font-variant-numeric:tabular-nums}
 .pips{display:flex;gap:3px}
-.pips i{width:7px;height:7px;border-radius:50%;background:var(--line-2)}
-.pips i.W{background:var(--win)}.pips i.L{background:var(--lose)}
-.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:500;background:var(--panel-2);color:var(--muted)}
-.pill.adv{background:var(--win-soft);color:var(--win)}
+.pips i{width:8px;height:14px;border-radius:2px;background:var(--paper-3)}
+.pips i.W{background:var(--ink)}.pips i.L{background:var(--lose)}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--paper-2);color:var(--mute)}
+.pill.adv{background:var(--ink);color:#fff}
 .pill.elim{background:var(--lose-soft);color:var(--lose)}
-.pill.hot{background:var(--gold-soft);color:var(--gold)}
-tr.out td{opacity:.45}
-.prob{display:flex;align-items:center;gap:10px;min-width:170px}
-.track{flex:1;height:4px;border-radius:2px;background:var(--panel-2);overflow:hidden}
-.track i{display:block;height:100%;background:var(--win);border-radius:2px;transition:width .4s}
-.prob span,.num{font:600 13px var(--f-tag);font-variant-numeric:tabular-nums;width:44px;text-align:right}
-.champ-p{color:var(--gold)}
-.note{color:var(--faint);font-size:12px;margin:10px 0 0}
+.pill.hot{background:#fff3c2;color:#8a5a00}
+tr.out td{opacity:.42}
+.prob{display:flex;align-items:center;gap:12px;min-width:190px}
+.track{flex:1;height:6px;background:var(--paper-3);overflow:hidden}
+.track i{display:block;height:100%;background:var(--ink);transition:width .5s}
+.prob span,.pct{font:800 15px var(--f-num);font-stretch:80%;font-variant-numeric:tabular-nums;width:46px;text-align:right}
+.pct.champ{color:var(--accent)}
+.star{font-size:17px;color:var(--rule-2);padding:4px 6px;line-height:1}
+.star:hover{color:var(--accent)}
+.star[aria-pressed="true"]{color:var(--accent)}
+.note{color:var(--mute);font-size:12px;margin:12px 0 0}
 
 /* knockout */
-.bracket{position:relative;display:grid;grid-template-columns:repeat(3,224px) 200px;column-gap:56px;width:max-content;margin:0 auto}
-.kcol{display:flex;flex-direction:column;justify-content:space-around;gap:20px;min-height:560px}
+.bracket{position:relative;display:grid;grid-template-columns:repeat(3,232px) 210px;column-gap:56px;width:max-content;margin:0 auto}
+.kcol{display:flex;flex-direction:column;justify-content:space-around;gap:22px;min-height:600px}
 
 /* schedule */
-.sched{display:flex;flex-direction:column;gap:18px}
-.day h3{display:flex;gap:10px;align-items:center;margin-bottom:8px;color:var(--fg);font-size:14px;font-weight:700}
-.day h3 small{color:var(--muted);font-weight:400;font-size:12px}
-.day h3 .today{font-size:11px;color:var(--gold-ink);background:var(--gold);border-radius:4px;padding:0 6px;font-weight:700}
-.day-list{border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden}
-.srow{display:grid;grid-template-columns:64px 170px minmax(0,1fr) 90px;gap:16px;align-items:center;padding:11px 18px;border-top:1px solid var(--line)}
-.srow:first-child{border-top:0}
-.srow .t{font:600 15px var(--f-tag);font-variant-numeric:tabular-nums}
-.srow .stg{color:var(--muted);font-size:12.5px}
-.srow .teams{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);align-items:center;max-width:380px}
-.srow .stt{text-align:right;font-size:12px;color:var(--faint)}
-.srow .stt.live{color:var(--lose);font-weight:700}
-.srow.done .stt{color:var(--muted)}
+.sched-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{padding:6px 14px;font-size:13px;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tzsel{border:1.5px solid var(--ink);border-radius:999px;padding:6px 12px;background:var(--paper);color:var(--ink);font:inherit;font-size:13px;font-weight:700}
+.day{display:grid;grid-template-columns:150px minmax(0,1fr);gap:24px;padding:18px 0;border-bottom:1px solid var(--rule)}
+.day:first-child{padding-top:4px}
 .day.past{opacity:.55}
-@media (max-width:720px){.srow{grid-template-columns:52px minmax(0,1fr);row-gap:6px}.srow .teams{grid-column:1/-1}.srow .stt{grid-column:2;grid-row:1;text-align:right}.srow .stg{grid-column:2;grid-row:1}}
-.tzsel{background:var(--panel);border:1px solid var(--line-2);border-radius:999px;padding:7px 12px;color:var(--fg);font:inherit;font-size:13px}
+.dd b{display:block;font:900 46px/0.95 var(--f-num);font-stretch:72%;font-variant-numeric:tabular-nums}
+.dd small{display:block;color:var(--mute);font-size:12.5px;margin-top:6px}
+.dd .today{display:inline-block;margin-top:8px;background:var(--accent);color:#fff;font:800 10.5px var(--f-num);font-stretch:118%;letter-spacing:.16em;padding:2px 8px}
+.srow{display:grid;grid-template-columns:62px 150px minmax(0,1fr) 80px;gap:14px;align-items:center;width:100%;min-height:54px;padding:6px 10px;text-align:left;border-top:1px solid var(--rule)}
+.srow:first-child{border-top:0}
+.srow:hover{background:var(--paper-2)}
+.srow .t{font:800 19px var(--f-num);font-stretch:80%;font-variant-numeric:tabular-nums}
+.srow .stg{color:var(--mute);font-size:12.5px}
+.mu{display:grid;grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr);align-items:center;max-width:420px}
+.mu .tt{display:flex;align-items:center;gap:9px;font:800 17px var(--f-num);font-stretch:82%;min-width:0}
+.mu .tt.b{flex-direction:row-reverse}
+.mu .tt .crest{--s:26px}
+.mu .tt.l{color:var(--faint)}
+.mu .tt.l .crest{opacity:.4;filter:grayscale(1)}
+.mu .tt.fo{color:var(--accent)}
+.mu .tbd{font:500 12.5px var(--f-body);color:var(--faint)}
+.mu .sc{text-align:center;font:900 20px var(--f-num);font-stretch:75%;font-variant-numeric:tabular-nums}
+.mu .sc.v{font-size:12px;color:var(--faint);font-weight:600}
+.mu .sc.live{color:var(--live)}
+.srow .stt{text-align:right;font-size:12px;color:var(--mute)}
+.srow .stt.live{color:var(--live);font-weight:800;letter-spacing:.1em}
+@media (max-width:760px){.day{grid-template-columns:minmax(0,1fr);gap:8px}.dd{display:flex;align-items:baseline;gap:10px}.dd b{font-size:34px}.dd small{margin:0}.srow{grid-template-columns:52px minmax(0,1fr) auto;row-gap:4px}.srow .stg{grid-column:2;grid-row:1}.srow .stt{grid-column:3;grid-row:1}.srow .mu{grid-column:1/-1}}
+
+/* drawer */
+.scrim{position:fixed;inset:0;z-index:44;background:rgba(14,14,17,.45)}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:45;width:min(600px,100%);background:var(--paper);overflow-y:auto;box-shadow:-20px 0 60px -20px rgba(0,0,0,.4);padding-bottom:env(safe-area-inset-bottom,0px);animation:slide .22s ease-out}
+@keyframes slide{from{transform:translateX(30px);opacity:.4}}
+@media (prefers-reduced-motion:reduce){.drawer{animation:none}}
+.dr-top{background:var(--night);color:#fff;padding:calc(16px + env(safe-area-inset-top,0px)) max(22px,env(safe-area-inset-right,0px)) 22px 22px;position:relative}
+.dr-close{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));color:var(--night-mute);font-size:26px;line-height:1;padding:4px 8px}
+.dr-close:hover{color:#fff}
+.dr-k{font-size:12px;color:var(--night-mute);display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-right:36px}
+.dr-sb{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;margin-top:18px}
+.dr-sb .t{display:flex;align-items:center;gap:12px;min-width:0}
+.dr-sb .t.b{flex-direction:row-reverse;text-align:right}
+.dr-sb .t .crest{--s:56px;background:transparent}
+.dr-sb .t b{display:block;font:900 40px/0.95 var(--f-num);font-stretch:72%}
+.dr-sb .t small{display:block;font-size:11.5px;color:var(--night-mute)}
+.dr-sb .t .star{color:var(--night-mute);font-size:15px;padding:0}
+.dr-sb .t .star[aria-pressed="true"]{color:#9fb0ff}
+.dr-sb .s{font:900 54px/1 var(--f-num);font-stretch:72%;font-variant-numeric:tabular-nums;text-align:center}
+.dr-sb .s small{display:block;font:500 11.5px var(--f-body);color:var(--night-mute);margin-top:4px}
+.dr-body{padding:20px 22px 28px}
+.gtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.gtabs button{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--rule-2);font:800 13px var(--f-num);font-stretch:90%;color:var(--mute)}
+.gtabs button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.gtabs button .crest{--s:16px;border-radius:3px}
+.gtabs button .lvd{width:6px;height:6px;border-radius:50%;background:var(--live)}
+.ghead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.ghead h4{margin:0;font:900 22px var(--f-head)}
+.ghead .meta{color:var(--mute);font-size:12.5px}
+.tape{border-top:2px solid var(--ink);margin-bottom:22px}
+.trow{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule)}
+.trow .v{font:900 20px var(--f-num);font-stretch:78%;font-variant-numeric:tabular-nums}
+.trow .v.r{text-align:right}
+.trow .v.lead{color:var(--accent)}
+.trow .lab{text-align:center;font-size:11.5px;color:var(--mute);margin-bottom:5px}
+.split{display:flex;height:6px;gap:2px}
+.split i{display:block;height:100%;background:var(--paper-3)}
+.split i.lead{background:var(--ink)}
+.drags{display:flex;gap:3px;justify-content:center;margin-top:5px}
+.drags i{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.drags i.infernal{background:#e8572a}.drags i.ocean{background:#1f8fd6}.drags i.mountain{background:#9a6b3d}.drags i.cloud{background:#9bb7c9}.drags i.hextech{background:#22b8c9}.drags i.chemtech{background:#5fae3e}.drags i.elder{background:#d9b44a}
+.lineup{border-top:2px solid var(--ink)}
+.lrow{display:grid;grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.pl{display:flex;align-items:center;gap:10px;min-width:0}
+.pl.b{flex-direction:row-reverse;text-align:right}
+.pl img,.pl .noimg{width:38px;height:38px;border-radius:4px;flex:none;background:var(--paper-3);object-fit:cover}
+.pl div{min-width:0}
+.pl b{display:block;font:800 15px var(--f-num);font-stretch:85%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl small{display:block;color:var(--mute);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl .kda{margin-left:auto;font:800 14px var(--f-num);font-stretch:80%;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.pl.b .kda{margin-left:0;margin-right:auto;text-align:left}
+.pl .kda small{font:500 11px var(--f-body);color:var(--faint)}
+.role{text-align:center;font:800 10px var(--f-num);font-stretch:118%;letter-spacing:.14em;color:var(--faint)}
+.dr-empty{padding:26px 0;text-align:center;color:var(--mute);font-size:13px}
+.dr-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
 
 /* sheets */
-.modal{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));background:rgba(4,6,10,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.sheet{width:min(580px,100%);max-height:calc(100vh - 40px);overflow:auto;background:var(--panel);border:1px solid var(--line-2);border-radius:18px;padding:22px}
-.sheet-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.sheet-h button{color:var(--muted);font-size:22px;padding:0 8px}
-.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
-.lcard{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);text-decoration:none}
-.lcard:hover{border-color:var(--line-2)}
-.lic{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;flex:none}
+.modal{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));background:rgba(14,14,17,.5)}
+.sheet{width:min(620px,100%);max-height:calc(100vh - 40px);overflow:auto;background:var(--paper);border-radius:10px;padding:24px}
+.sheet-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sheet-h h2{font:900 26px var(--f-head)}
+.sheet-h button{color:var(--mute);font-size:26px;padding:0 6px;line-height:1}
+.sheet .sub{color:var(--mute);font-size:13px;margin:0 0 16px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.tpick{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px 10px;border-radius:8px;border:1.5px solid var(--rule);font:800 14px var(--f-num);font-stretch:85%}
+.tpick small{font:500 10.5px var(--f-body);color:var(--mute)}
+.tpick .crest{--s:40px}
+.tpick .crest.fo::after{display:none}
+.tpick:hover{border-color:var(--ink)}
+.tpick[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.lcard{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:8px;border:1.5px solid var(--rule);text-decoration:none}
+.lcard:hover{border-color:var(--ink)}
+.lic{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;flex:none}
 .lcard div{min-width:0}
 .lcard b{display:block;font-size:14px}
-.lcard small{display:block;color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lcard small{display:block;color:var(--mute);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lcard .x{position:absolute;top:4px;right:6px;color:var(--faint);font-size:16px;padding:2px 6px}
 .lcard .x:hover{color:var(--lose)}
 .addform{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.addform input{flex:1 1 160px;min-width:0;background:var(--bg);border:1px solid var(--line-2);border-radius:999px;padding:8px 14px;color:var(--fg);font:inherit;font-size:13px}
-.addform input::placeholder{color:var(--faint)}
-.poster{border-radius:14px;padding:22px;background:radial-gradient(300px 160px at 50% 0,rgba(210,172,96,.18),transparent),var(--bg);border:1px solid var(--line);text-align:center}
-.poster .eb{font-size:11px;letter-spacing:.18em;color:var(--gold)}
-.poster .champ .lg{width:84px;height:84px;margin:12px auto 6px}
-.poster .champ .tt{display:block;font:700 28px var(--f-tag)}
-.poster .champ small{display:block;color:var(--muted);font-size:12px}
-.prow{margin-top:18px}
-.prow small{display:block;color:var(--faint);font-size:11px;letter-spacing:.1em;margin-bottom:8px}
-.plogos{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-.plogos span{display:flex;flex-direction:column;align-items:center;gap:3px;font:600 11px var(--f-tag);color:var(--muted);width:44px}
-.plogos .lg{width:30px;height:30px}
+.addform input{flex:1 1 160px;min-width:0;border:1.5px solid var(--rule-2);border-radius:999px;padding:8px 14px;color:var(--ink);font:inherit;font-size:13px;background:var(--paper)}
+.addform input:focus{border-color:var(--ink);outline:none}
+.poster{background:var(--night);color:#fff;border-radius:8px;padding:24px;text-align:center;position:relative;overflow:hidden}
+.poster::after{content:"";position:absolute;right:-60px;top:-30px;width:140px;height:150%;background:var(--accent);transform:skewX(-14deg)}
+.poster > *{position:relative;z-index:1}
+.poster .kicker{color:#fff}
+.poster .champ .crest{--s:96px;margin:14px auto 8px;background:transparent}
+.poster .champ .tt{display:block;font:900 52px/1 var(--f-num);font-stretch:72%}
+.poster .champ small{display:block;color:var(--night-mute);font-size:12.5px;margin-top:6px}
+.prow{margin-top:20px}
+.prow small{display:block;color:var(--night-mute);font:800 10.5px var(--f-num);font-stretch:118%;letter-spacing:.18em;margin-bottom:10px}
+.plogos{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.plogos span{display:flex;flex-direction:column;align-items:center;gap:4px;font:800 12px var(--f-num);font-stretch:85%;width:46px}
+.plogos .crest{--s:34px;background:transparent}
+.plogos em{font-style:normal;color:var(--night-mute);font-weight:600}
 .sheet .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
-.sheet details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
-.sheet summary{cursor:pointer;color:var(--muted);font-size:13px}
-.sheet textarea{width:100%;min-height:90px;margin-top:10px;background:var(--bg);border:1px solid var(--line-2);border-radius:10px;color:var(--fg);padding:10px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
-.sheet .msg{color:var(--muted);font-size:12px;margin:8px 0 0}
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13px;font-weight:500;z-index:50}
-.foot{color:var(--faint);font-size:12px;padding-block:24px 40px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sheet details{margin-top:18px;border-top:1px solid var(--rule);padding-top:14px}
+.sheet summary{cursor:pointer;color:var(--mute);font-size:13px}
+.sheet textarea{width:100%;min-height:90px;margin-top:10px;border:1.5px solid var(--rule-2);border-radius:8px;padding:10px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+.sheet .msg{color:var(--mute);font-size:12px;margin:8px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;z-index:60;box-shadow:0 8px 24px -8px rgba(0,0,0,.4)}
+.foot{border-top:2px solid var(--ink);padding-block:22px 40px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--mute);font-size:12px}
+.foot b{font:900 18px var(--f-num);font-stretch:125%;color:var(--ink);margin-right:10px}
 </style>
+
+<div class="ticker"><div class="wrap ticker-in" id="ticker"></div></div>
 
 <header class="top">
   <div class="wrap top-in">
-    <div class="brand">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0V3Z" fill="currentColor" fill-opacity=".2"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M12 13v4M8 21h8M9.5 17h5v4h-5z"/></svg>
-      <b>S<span>16</span></b>
-    </div>
+    <a class="brand" href="#" data-tab="cur"><b>S<i>16</i></b><span>观赛台</span></a>
     <nav class="tabs" role="tablist" id="tabs">
       <button role="tab" data-tab="pi">入围赛</button>
       <button role="tab" data-tab="swiss">瑞士轮</button>
@@ -327,60 +470,75 @@ tr.out td{opacity:.45}
       <button role="tab" data-tab="schedule">赛程</button>
     </nav>
     <div class="tools">
+      <button class="btn ghost" id="open-teams" title="关注战队"><span class="stack" id="follow-stack"></span><span>关注</span></button>
       <label class="switch" title="为未开赛的比赛做预测"><input type="checkbox" id="pred"><i></i><span>预测</span></label>
-      <button class="pill-btn" id="btn-sim" hidden title="按参考实力随机模拟所有未开赛比赛，再点一次换一组结果"><span class="wide">按实力</span>模拟</button>
-      <button class="pill-btn quiet" id="open-share" hidden>分享</button>
-      <button class="pill-btn gold" id="open-live">▶ 直播</button>
+      <button class="btn" id="btn-sim" hidden title="按参考实力随机模拟所有未开赛比赛，再点一次换一组结果"><span class="wide">按实力</span>模拟</button>
+      <button class="btn ghost" id="open-share" hidden>分享</button>
+      <button class="btn solid" id="open-live">▶ 直播</button>
     </div>
   </div>
 </header>
 
+<section class="cover"><div class="wrap cover-in" id="cover"></div></section>
+
 <main class="wrap">
-  <section class="hero" id="hero"></section>
+  <div class="followbar" id="followbar"></div>
 
   <section class="panel" id="p-pi" role="tabpanel">
-    <div class="ph"><div><h1>入围赛</h1><p class="sub">四支队伍双败淘汰，全部 BO5，冠军以第四档身份进入瑞士轮。</p></div></div>
+    <div class="sec-h"><div><span class="kicker">Stage 01 · Play-In</span><h2>入围赛</h2></div>
+      <p class="dek">四支队伍双败淘汰，全部 BO5。冠军以第四档身份进入瑞士轮，其余三队结束本届征程。</p><div class="ctrl"></div></div>
     <div id="pi-tip"></div>
-    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span></div>
+    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span><span class="hint">点击比赛查看详情</span></div>
     <div class="scroll-x"><div class="pi" id="pi"></div></div>
   </section>
 
   <section class="panel" id="p-swiss" role="tabpanel" hidden>
-    <div class="ph"><div><h1>瑞士轮</h1><p class="sub">16 支队伍，三胜晋级、三败淘汰。同战绩队伍抽签对阵，晋级赛和淘汰赛为 BO3，其余 BO1。</p></div><div class="ctrl" id="sw-ctrl"></div></div>
+    <div class="sec-h"><div><span class="kicker">Stage 02 · Swiss</span><h2>瑞士轮</h2></div>
+      <p class="dek">16 支队伍，三胜晋级、三败淘汰。每轮同战绩队伍抽签对阵；晋级赛和淘汰赛打 BO3，其余 BO1。</p><div class="ctrl" id="sw-ctrl"></div></div>
     <div id="pots"></div>
     <div id="sw-tip"></div>
-    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span><span class="hint">悬停队伍查看它的晋级路线</span></div>
+    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span><span class="hint">悬停队伍看晋级路线 · 点击比赛查看详情</span></div>
     <div class="scroll-x"><div class="flow" id="flow"></div></div>
-    <div class="ph second"><div><h2>积分与晋级形势</h2><p class="sub" id="prob-note"></p></div></div>
+    <div class="sub-h"><div><h3>积分与晋级形势</h3><p id="prob-note"></p></div></div>
     <div class="table-scroll"><table id="stand"></table></div>
   </section>
 
   <section class="panel" id="p-ko" role="tabpanel" hidden>
-    <div class="ph"><div><h1>淘汰赛</h1><p class="sub">八强、半决赛、决赛均为 BO5。两支 3-0 队伍各抽一支 3-2 队伍，分处不同半区。决赛 11 月 14 日在纽约 Barclays Center。</p></div>
-      <div class="ctrl" id="ko-ctrl"></div></div>
+    <div class="sec-h"><div><span class="kicker">Stage 03 · Knockouts</span><h2>淘汰赛</h2></div>
+      <p class="dek">八强、半决赛、决赛全部 BO5。两支 3-0 队伍各抽一支 3-2 队伍并分处两个半区。决赛 11 月 14 日在纽约 Barclays Center。</p><div class="ctrl" id="ko-ctrl"></div></div>
     <div id="ko-tip"></div>
     <div class="scroll-x"><div class="bracket" id="bracket"></div></div>
   </section>
 
   <section class="panel" id="p-schedule" role="tabpanel" hidden>
-    <div class="ph"><div><h1>赛程</h1><p class="sub">全部场次与比分，来自 LoL Esports 官方赛程。</p></div>
-      <select class="tzsel" id="tz" aria-label="时区">
-        <option value="Asia/Shanghai">北京时间</option>
-        <option value="local">本机时区</option>
-        <option value="America/Chicago">美国中部时间</option>
-      </select></div>
-    <div class="sched" id="sched"></div>
+    <div class="sec-h"><div><span class="kicker">Schedule</span><h2>赛程</h2></div>
+      <p class="dek">全部场次与比分，来自 LoL Esports 官方赛程。点击任意一场查看详情。</p>
+      <div class="ctrl sched-tools"><span class="seg" id="sched-filter"></span>
+        <select class="tzsel" id="tz" aria-label="时区"><option value="Asia/Shanghai">北京时间</option><option value="local">本机时区</option><option value="America/Chicago">美国中部时间</option></select></div></div>
+    <div id="sched"></div>
   </section>
 </main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="比赛详情" hidden></aside>
+
+<div class="modal" id="teams" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="teams-t">
+    <div class="sheet-h"><h2 id="teams-t">关注战队</h2><button data-close aria-label="关闭">×</button></div>
+    <p class="sub">选你支持的队伍。全站会高亮它们的比赛，封面下方显示它们的下一场，赛程可以只看关注的队。</p>
+    <div class="tgrid" id="tgrid"></div>
+  </div>
+</div>
 
 <div class="modal" id="live" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="live-t">
     <div class="sheet-h"><h2 id="live-t">选择直播间</h2><button data-close aria-label="关闭">×</button></div>
+    <p class="sub">在新标签页打开。可以添加你常看的主播间，保存在本浏览器。</p>
     <div class="lgrid" id="lgrid"></div>
     <form class="addform" id="addform">
-      <input id="ln" placeholder="添加常看的直播间名称" maxlength="24" required>
+      <input id="ln" placeholder="直播间名称" maxlength="24" required>
       <input id="lu" placeholder="https://…" type="url" required>
-      <button class="pill-btn" type="submit">添加</button>
+      <button class="btn" type="submit">添加</button>
     </form>
   </div>
 </div>
@@ -390,21 +548,21 @@ tr.out td{opacity:.45}
     <div class="sheet-h"><h2 id="share-t">我的预测</h2><button data-close aria-label="关闭">×</button></div>
     <div class="poster" id="poster"></div>
     <div class="row">
-      <button class="pill-btn gold" id="btn-copytext">复制文字版</button>
-      <button class="pill-btn" id="btn-copycode">复制预测码</button>
-      <button class="pill-btn quiet" id="btn-clear">清空预测</button>
+      <button class="btn solid" id="btn-copytext">复制文字版</button>
+      <button class="btn" id="btn-copycode">复制预测码</button>
+      <button class="btn ghost" id="btn-clear">清空预测</button>
     </div>
     <details>
       <summary>导入朋友的预测码</summary>
       <textarea id="code" aria-label="预测码" spellcheck="false" placeholder="粘贴预测码"></textarea>
-      <div class="row" style="margin-top:8px"><button class="pill-btn" id="btn-import">导入并覆盖我的预测</button></div>
+      <div class="row" style="margin-top:8px"><button class="btn" id="btn-import">导入并覆盖我的预测</button></div>
       <p class="msg" id="importmsg"></p>
     </details>
   </div>
 </div>
 
 <footer class="wrap foot">
-  <span>粉丝自制，与 Riot Games 无关。赛程与比分来自 LoL Esports 官方数据。</span>
+  <span><b>S16</b>粉丝自制，与 Riot Games 无关。赛程、比分与比赛数据来自 LoL Esports 官方接口。</span>
   <span id="updated"></span>
 </footer>
 
@@ -491,7 +649,7 @@ async function refreshLive(){
 
 /* ---------- state ---------- */
 const KEY = 's16-watch-v2';
-let S = {picks:{}, pred:false, drawSeed:20261018, qfSeed:1114, tz:'Asia/Shanghai', links:[]};
+let S = {picks:{}, pred:false, drawSeed:20261018, qfSeed:1114, tz:'Asia/Shanghai', links:[], follow:[], onlyFollow:false};
 try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -501,7 +659,8 @@ function shuffle(arr, rng){ for (let i = arr.length - 1; i > 0; i--) { const j =
 const reg = id => TEAMS[id] ? TEAMS[id].region : '';
 const mkey = (prefix, a, b) => prefix + ':' + [a, b].sort().join('-');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const logo = id => !id ? '<i class="ghost"></i>' : LOGO[id] ? `<img class="lg" src="${LOGO[id]}" alt="">` : `<span class="mono">?</span>`;
+const isF = id => !!id && S.follow.includes(id);
+const crest = (id, cls = '') => !id ? `<span class="crest ph ${cls}"></span>` : LOGO[id] ? `<span class="crest ${cls} ${isF(id) ? 'fo' : ''}"><img src="${LOGO[id]}" alt=""></span>` : `<span class="crest q ${cls}">?</span>`;
 const short = id => id === 'PIW' ? '待定' : id;
 const nameOf = id => id === 'PIW' ? '入围赛冠军（待定）' : TEAMS[id] ? TEAMS[id].name : id;
 function pickFor(key, a, b){ if (!S.pred || !key) return null; const p = S.picks[key]; return p && (p.w === a || p.w === b) ? p : null; }
@@ -676,6 +835,7 @@ function stageLabel(m){
   return {swiss:'瑞士轮', qf:'八强赛', sf:'半决赛', f:'总决赛'}[m.st] + ' · BO' + m.bo;
 }
 
+
 /* ---------- edges ---------- */
 const $ = id => document.getElementById(id);
 const MARKERS = '<defs>' + ['w', 'l', 'n', 'g'].map(k => `<marker id="mk-${k}" class="mk-${k}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z"/></marker>`).join('') + '</defs>';
@@ -695,62 +855,141 @@ function drawEdges(root, edges){
   svg.innerHTML = p;
 }
 
+/* ---------- shared bits ---------- */
+function resolve(m){
+  if (m.st === 'pi') { const n = PI_ORDER.find(k => PI_OFF[k] === m), node = MODEL.pi.nodes[n]; return {a: node.a, b: node.b}; }
+  return {a: m.a, b: m.b};
+}
+const gamesOf = (m, id) => m.live ? (id === m.a ? m.ga : m.gb) : m.res ? +(m.res.w === id ? m.res.s[0] : m.res.s[2]) : '';
+function nextMatch(){ const now = Date.now(); return MATCHES.find(m => m.live) || MATCHES.find(m => m.state !== 'completed' && m.t > now - 6 * 3600e3); }
+function predTip(open, closedMsg){
+  if (!open) return '';
+  return S.pred
+    ? '<div class="tip acc"><b>预测已开启</b>点击未开赛比赛中的队伍选出胜者，再点一次取消。顶部「按实力模拟」可以一键补完，每点一次换一组结果。</div>'
+    : `<div class="tip">${closedMsg} 想猜结果？打开右上角的<b>预测</b>开关。</div>`;
+}
+
 /* ---------- bracket card ---------- */
 function kcard(m, label, node, seed){
   const can = S.pred && m.key && !m.official && !m.live;
   const pred = m.res && !m.official;
+  const oid = m.o && m.o.id, openable = oid && m.a && m.b;
   let st = '';
   if (m.official) st = '<span class="st">已结束</span>';
   else if (m.live) st = '<span class="st live">LIVE</span>';
   else if (pred) st = '<span class="st pd">我的预测</span>';
   else if (m.t) st = `<span class="st">${fMD(m.t)} ${fWk(m.t)} ${fTime(m.t)}</span>`;
+  if (can && openable) st += ` <button class="more" data-detail="${oid}">详情</button>`;
   const row = id => {
-    if (!id) return '<div class="krow ph"><i class="ghost"></i>待定</div>';
-    const cls = m.res ? (m.res.w === id ? 'win' : 'lose') : '';
-    const g = m.live ? (id === m.a ? m.o.ga : m.o.gb) : m.res ? (m.res.w === id ? m.res.s[0] : m.res.s[2]) : '';
-    const inner = `${logo(id)}${short(id)}<small>${seed && seed[id] || ''}</small><span class="ks">${g}</span>`;
+    if (!id) return `<div class="krow ph">${crest(null)}待定</div>`;
+    const cls = (m.res ? (m.res.w === id ? 'win' : 'lose') : '') + (isF(id) ? ' fo' : '');
+    const inner = `${crest(id)}${short(id)}<small>${seed && seed[id] || ''}</small><span class="ks">${gamesOf(m, id)}</span>`;
     return can ? `<button class="krow ${cls}" data-key="${m.key}" data-team="${id}" data-bo="5" aria-label="预测 ${id} 获胜">${inner}</button>` : `<div class="krow ${cls}">${inner}</div>`;
   };
   const score = can && m.res ? `<div class="kscore">${['3-0','3-1','3-2'].map(s => `<button data-setscore="${m.key}" data-s="${s}" aria-pressed="${m.res.s === s}">${s.replace('-', ':')}</button>`).join('')}</div>` : '';
-  return `<div class="kcard ${pred ? 'pred' : ''} ${m.live ? 'live' : ''}" data-node="${node}"><div class="kmeta"><span>${label}</span>${st}</div>${row(m.a)}${row(m.b)}${score}</div>`;
-}
-function predTip(open, closedMsg){
-  if (!open) return '';
-  return S.pred
-    ? `<div class="pred-tip"><b>预测已开启</b>点击未开赛比赛中的队伍选出胜者，再点一次取消。预测只保存在你的浏览器里。</div>`
-    : `<div class="pred-tip">${closedMsg} 想猜结果？打开右上角的<b>预测</b>开关。</div>`;
+  const tap = !can && openable ? ` tap" data-detail="${oid}" role="button" tabindex="0` : '';
+  return `<div class="kcard ${pred ? 'pred' : ''} ${m.live ? 'live' : ''}${tap}" data-node="${node}"><div class="kmeta"><span>${label}</span><span>${st}</span></div>${row(m.a)}${row(m.b)}${score}</div>`;
 }
 
-/* ---------- play-in render ---------- */
+/* ---------- ticker ---------- */
+let tickerPlaced = false;
+function renderTicker(){
+  const done = MATCHES.filter(m => m.res).slice(-6), live = MATCHES.filter(m => m.live), up = MATCHES.filter(m => !m.res && !m.live).slice(0, 8);
+  const label = s => s.st === 'pi' ? PI_LABEL[PI_ORDER.find(k => PI_OFF[k] === s)] : {swiss:'瑞士轮', qf:'八强赛', sf:'半决赛', f:'总决赛'}[s.st];
+  const chip = m => {
+    const {a, b} = resolve(m), w = m.res && m.res.w;
+    const top = m.live ? '<span class="lv">LIVE</span>' : m.res ? `${fMD(m.t)} · 已结束` : `${fMD(m.t)} ${fTime(m.t)}`;
+    const line = id => `<span class="cr ${w && w !== id ? 'l' : ''}">${crest(id, 'bare')}${id ? short(id) : '待定'}<span class="sc">${id ? gamesOf(m, id) : ''}</span></span>`;
+    const attrs = a && b ? `data-detail="${m.id}"` : 'disabled';
+    return `<button class="chip ${isF(a) || isF(b) ? 'fol' : ''} ${m.live ? 'is-live' : !m.res ? 'is-next' : ''}" ${attrs}><span class="cm"><span>${top}</span><span>${label(m)}</span></span>${line(a)}${line(b)}</button>`;
+  };
+  $('ticker').innerHTML = `<div class="tk-label"><b>S16</b><small>赛果 · 赛程</small></div>` + done.concat(live, up).map(chip).join('');
+  if (!tickerPlaced) {
+    tickerPlaced = true;
+    const first = $('ticker').querySelector('.is-live, .is-next');
+    if (first) $('ticker').scrollLeft = Math.max(0, first.offsetLeft - $('ticker').querySelector('.tk-label').offsetWidth - 2 * first.offsetWidth);
+  }
+}
+
+/* ---------- cover ---------- */
+function renderCover(){
+  const nx = nextMatch();
+  if (!nx) { $('cover').innerHTML = '<div class="cv-k"><span class="kicker">S16</span>全部比赛已结束</div>'; return; }
+  const {a, b} = resolve(nx);
+  const side = (id, cls) => `<div class="side ${cls} ${isF(id) ? 'fo' : ''}">${crest(id, 'bare')}<div><b class="code">${id ? short(id) : '待定'}</b><span class="name">${id ? esc(nameOf(id)) : '等待上一场结果'}</span></div></div>`;
+  const mid = nx.live ? `<div class="mid live"><b>${nx.ga}:${nx.gb}</b><small>BO${nx.bo} · 正在进行</small></div>` : `<div class="mid"><b>${fTime(nx.t)}</b><small>${fMD(nx.t)} ${fWk(nx.t)} · ${tzLabel()}</small></div>`;
+  const k = nx.live ? '<span class="live-tag">LIVE</span>' : '<span class="kicker">Next match · 下一场</span>';
+  $('cover').innerHTML = `<div class="cv-k">${k}<span>${stageLabel(nx)}${nx.st === 'pi' ? ' · BO5' : ''}</span></div>
+    <div class="vs">${side(a, 'a')}${mid}${side(b, 'b')}</div>
+    <div class="cv-foot"><span class="cd" id="cd"></span><div class="cv-btns">${LIVE.slice(0, 3).map((l, i) => `<a class="btn ${i === 0 ? 'acc' : ''}" href="${l.url}" target="_blank" rel="noopener">${i === 0 ? '▶ ' : ''}${l.name}</a>`).join('')}<button class="btn" data-open="live">更多直播</button>${a && b ? `<button class="btn" data-detail="${nx.id}">比赛详情</button>` : ''}</div></div>`;
+  tick();
+}
+function tick(){
+  const el = $('cd'); if (!el) return;
+  const nx = nextMatch(), now = Date.now(); if (!nx) return;
+  if (nx.live) { el.innerHTML = '正在直播，比分每 30 秒刷新'; return; }
+  if (nx.t <= now) { el.innerHTML = '即将开始'; return; }
+  let s = Math.floor((nx.t - now) / 1000); const d = Math.floor(s / 86400); s %= 86400;
+  const p = n => String(n).padStart(2, '0');
+  el.innerHTML = '距开赛' + (d ? `<b>${d}</b>天` : '') + `<b>${p(Math.floor(s / 3600))}</b>时<b>${p(Math.floor(s % 3600 / 60))}</b>分<b>${p(s % 60)}</b>秒`;
+}
+
+/* ---------- follow ---------- */
+const PICKABLE = Object.keys(TEAMS).filter(id => id !== 'PIW').sort((x, y) => (TEAMS[x].playin - TEAMS[y].playin) || (TEAMS[x].tier - TEAMS[y].tier));
+function teamOut(id){
+  const lost = MATCHES.filter(m => m.res && (m.a === id || m.b === id) && m.res.w !== id);
+  if (lost.filter(m => m.st === 'pi').length >= 2) return '入围赛出局';
+  if (lost.filter(m => m.st === 'swiss').length >= 3) return '瑞士轮出局';
+  const ko = lost.find(m => ['qf', 'sf', 'f'].includes(m.st));
+  if (ko) return ko.st === 'f' ? '亚军' : {qf:'止步八强', sf:'止步四强'}[ko.st];
+  if (MATCHES.some(m => m.st === 'f' && m.res && m.res.w === id)) return 'S16 冠军';
+  return '';
+}
+function teamNext(id){ return MATCHES.find(m => !m.res && (() => { const r = resolve(m); return r.a === id || r.b === id; })()); }
+function renderFollow(){
+  $('follow-stack').innerHTML = S.follow.slice(0, 3).map(id => crest(id)).join('');
+  if (!S.follow.length) { $('followbar').innerHTML = '<button class="add-follow" data-open="teams">＋ 关注你支持的战队，在这里追踪它们的下一场</button>'; return; }
+  $('followbar').innerHTML = '<span class="lbl">关注</span>' + S.follow.map(id => {
+    const nx = teamNext(id), out = teamOut(id);
+    let txt, attr = '';
+    if (nx) { const r = resolve(nx), opp = r.a === id ? r.b : r.a; txt = (nx.live ? '<b style="color:var(--live)">LIVE</b> ' : `${fMD(nx.t)} ${fTime(nx.t)} · `) + `对阵 ${opp ? short(opp) : '待定'}`; if (r.a && r.b) attr = `data-detail="${nx.id}"`; }
+    else txt = out || (TEAMS[id].playin ? '等待入围赛结果' : '等待抽签');
+    return `<button class="fchip ${!nx && out ? 'out' : ''}" ${attr}>${crest(id)}<span><b>${id}</b> <small>${txt}</small></span></button>`;
+  }).join('') + '<button class="add-follow" data-open="teams">管理</button>';
+}
+function renderTeamPicker(){
+  $('tgrid').innerHTML = PICKABLE.map(id => `<button class="tpick" data-follow="${id}" aria-pressed="${isF(id)}">${crest(id)}${id}<small>${TEAMS[id].region}</small></button>`).join('');
+}
+function toggleFollow(id){
+  S.follow = isF(id) ? S.follow.filter(x => x !== id) : S.follow.concat(id);
+  save(); renderAll(); if (!$('teams').hidden) renderTeamPicker();
+}
+
+/* ---------- play-in ---------- */
 function renderPI(M){
   const N = M.pi.nodes;
   const cell = (c, r, inner, span) => `<div class="cell" style="grid-column:${c};grid-row:${span ? '1 / span 2' : r}">${inner}</div>`;
   const card = n => kcard(N[n], PI_LABEL[n], n);
   const champ = M.pi.champ;
   const goal = champ
-    ? `<div class="goal ${M.pi.champOfficial ? '' : 'pd'}" data-node="goal">${logo(champ)}<span class="tt">${champ}</span><small>${M.pi.champOfficial ? '晋级瑞士轮 · 第四档' : '我的预测 · 晋级瑞士轮'}</small></div>`
-    : `<div class="goal ph" data-node="goal"><i class="ghost"></i><span class="tt" style="color:var(--muted)">待定</span><small>冠军晋级瑞士轮</small></div>`;
+    ? `<div class="goal ${M.pi.champOfficial ? '' : 'pd'}" data-node="goal">${crest(champ, 'bare')}<span class="tt">${champ}</span><small>${M.pi.champOfficial ? '晋级瑞士轮 · 第四档' : '我的预测 · 晋级瑞士轮'}</small></div>`
+    : `<div class="goal ph" data-node="goal">${crest(null)}<span class="tt">待定</span><small>冠军晋级瑞士轮</small></div>`;
   $('pi').innerHTML = '<svg class="edges" aria-hidden="true"></svg>' +
     cell(1, 1, card('ub1') + card('ub2')) + cell(2, 1, card('ubf')) + cell(2, 2, card('lb1')) + cell(3, 2, card('lbf')) +
     cell(4, 1, card('f'), true) + cell(5, 1, goal, true);
-  const open = PI_ORDER.some(n => !N[n].official);
-  $('pi-tip').innerHTML = predTip(open, '入围赛还剩 ' + PI_ORDER.filter(n => !N[n].official).length + ' 场。');
+  $('pi-tip').innerHTML = predTip(PI_ORDER.some(n => !N[n].official), '入围赛还剩 ' + PI_ORDER.filter(n => !N[n].official).length + ' 场。');
   drawPI();
 }
-function piEdges(){
+function drawPI(){
+  if (!MODEL) return;
   const N = MODEL.pi.nodes, E = [];
-  const add = (f, t, k) => {
-    const m = N[f]; let cls = '';
-    if (m.res) cls = m.official ? 'on' : 'pr';
-    E.push({f, t, k: m.res ? k : 'n', cls, dy: k === 'w' ? -8 : 8});
-  };
+  const add = (f, t, k) => { const m = N[f]; E.push({f, t, k: m.res ? k : 'n', cls: m.res ? (m.official ? 'on' : 'pr') : '', dy: k === 'w' ? -8 : 8}); };
   add('ub1', 'ubf', 'w'); add('ub2', 'ubf', 'w'); add('ub1', 'lb1', 'l'); add('ub2', 'lb1', 'l');
   add('ubf', 'f', 'w'); add('ubf', 'lbf', 'l'); add('lb1', 'lbf', 'w'); add('lbf', 'f', 'w'); add('f', 'goal', 'w');
-  return E;
+  drawEdges($('pi'), E);
 }
-function drawPI(){ if (MODEL) drawEdges($('pi'), piEdges()); }
 
-/* ---------- swiss render ---------- */
+/* ---------- swiss ---------- */
 const NMATCH = {'0-0':8,'1-0':4,'0-1':4,'2-0':2,'1-1':4,'0-2':2,'2-1':3,'1-2':3,'2-2':3};
 const NSLOT = {'3-0':2,'3-1':3,'3-2':3,'0-3':2,'1-3':3,'2-3':3};
 const COLS = [
@@ -760,13 +999,13 @@ const COLS = [
 const SW_EDGES = [];
 Object.keys(NMATCH).forEach(k => { const w = +k[0], l = +k[2]; SW_EDGES.push({f:k, t:(w + 1) + '-' + l, k:'w', dy:-10, cap:60, id:k + '>' + (w + 1) + '-' + l}, {f:k, t:w + '-' + (l + 1), k:'l', dy:10, cap:60, id:k + '>' + w + '-' + (l + 1)}); });
 const BOXTAG = {'2-0':'晋级赛','2-1':'晋级赛','0-2':'淘汰赛','1-2':'淘汰赛','2-2':'生死战'};
+const dash = k => k.replace('-', '–');
 let PATH = {};
 function rowHTML(m){
-  const can = S.pred && !m.official && !m.live;
-  const pred = m.res && !m.official;
+  const can = S.pred && !m.official && !m.live, pred = m.res && !m.official;
   const side = (id, pos) => {
-    const cls = m.res ? (m.res.w === id ? 'win' : 'lose') : '';
-    const inner = `${logo(id)}<span>${short(id)}</span>`;
+    const cls = (m.res ? (m.res.w === id ? 'win' : 'lose') : '') + (isF(id) ? ' fo' : '');
+    const inner = `${crest(id)}<span>${short(id)}</span>`;
     return can ? `<button class="side ${pos} ${cls}" data-key="${m.key}" data-team="${id}" data-bo="${m.bo}" data-tm="${id}" aria-label="预测 ${id} 获胜">${inner}</button>` : `<div class="side ${pos} ${cls}" data-tm="${id}">${inner}</div>`;
   };
   let mid;
@@ -775,14 +1014,15 @@ function rowHTML(m){
   else if (m.res) mid = `<span class="mid">${scoreAB(m)}</span>`;
   else if (m.t) mid = `<span class="mid t">${fTime(m.t)}</span>`;
   else mid = '<span class="mid t">vs</span>';
-  return `<div class="mrow ${pred ? 'pred' : ''} ${m.sim ? 'sim' : ''}" data-t="${m.a} ${m.b}">${side(m.a, 'a')}${mid}${side(m.b, 'b')}</div>`;
+  const tap = !can && m.o && m.o.id ? ` tap" data-detail="${m.o.id}` : '';
+  return `<div class="mrow ${pred ? 'pred' : ''} ${m.sim ? 'sim' : ''}${tap}" data-t="${m.a} ${m.b}">${side(m.a, 'a')}${mid}${side(m.b, 'b')}</div>`;
 }
-const phRow = '<div class="mrow ph" aria-label="待定"><span class="side a"><i class="ghost"></i><i class="bar"></i></span><span class="mid t">vs</span><span class="side b"><i class="ghost"></i><i class="bar"></i></span></div>';
+const phRow = `<div class="mrow ph" aria-label="待定"><span class="side a">${'<span class="crest ph"></span>'}<i class="bar"></i></span><span class="mid t">vs</span><span class="side b"><span class="crest ph"></span><i class="bar"></i></span></div>`;
 function renderPots(M){
   if (M.byR[1]) { $('pots').innerHTML = ''; return; }
   const tiers = [1, 2, 3, 4].map(k => M.ids.filter(id => TEAMS[id].tier === k));
-  $('pots').innerHTML = `<div class="ph" style="margin-bottom:10px"><div><h2>首轮抽签分档</h2><p class="sub">入围赛决赛结束后立即抽签（美国时间 10 月 18 日，约北京时间 10 月 19 日早上，具体时间官方未公布）。规则：第一档对第四档、第二档对第三档，同赛区回避。官方抽签公布后，下方流程图会换成真实对阵。</p></div></div><div class="pots">` +
-    tiers.map((ts, i) => `<div class="pot"><h3><span>第${'一二三四'[i]}档</span></h3><div class="pot-teams">${ts.map(id => `<span title="${esc(nameOf(id))}">${logo(id)}${short(id)}</span>`).join('')}</div></div>`).join('') + '</div>';
+  $('pots').innerHTML = `<div class="sub-h" style="margin-top:0"><div><h3>首轮抽签分档</h3><p>入围赛决赛结束后立即抽签（美国时间 10 月 18 日，约北京时间 10 月 19 日早上，具体时间官方未公布）。第一档对第四档、第二档对第三档，同赛区回避。官方抽签公布后，下方流程图会换成真实对阵。</p></div></div><div class="pots">` +
+    tiers.map((ts, i) => `<div class="pot"><h4><b>0${i + 1}</b>第${'一二三四'[i]}档</h4><div class="pot-teams">${ts.map(id => `<span title="${esc(nameOf(id))}">${crest(id)}${short(id)}</span>`).join('')}</div></div>`).join('') + '</div>';
 }
 function renderFlow(M){
   const byBox = {};
@@ -791,20 +1031,20 @@ function renderFlow(M){
   M.ids.forEach(id => { const r = M.sw.rec[id]; if (r.w === 3 || r.l === 3) PATH[id].push(r.w + '-' + r.l); });
   let html = '<svg class="edges" aria-hidden="true"></svg>';
   COLS.forEach(c => {
-    html += `<div><div class="col-h"><b>${c.r ? '第' + c.r + '轮' : '最终'}</b><span>${c.r ? fMD(Date.parse(ROUND_T[c.r])) + (c.r >= 3 ? ' 起' : '') : ''}</span></div><div class="col" style="justify-content:${c.j}">`;
+    html += `<div><div class="col-h"><b>${c.r ? 'ROUND ' + c.r : 'FINAL'}</b><span>${c.r ? fMD(Date.parse(ROUND_T[c.r])) + (c.r >= 3 ? ' 起' : '') : '最终'}</span></div><div class="col" style="justify-content:${c.j}">`;
     c.boxes.forEach(k => {
       if (NSLOT[k]) {
         const adv = k[0] === '3';
         const teams = M.ids.filter(id => { const r = M.sw.rec[id]; return r.w + '-' + r.l === k; });
-        let slots = teams.map(id => { const pd = M.sw.rounds.some(rd => rd.matches.some(m => (m.a === id || m.b === id) && !m.official)); return `<span class="slot ${pd ? 'pd' : ''}" data-tm="${id}" title="${esc(nameOf(id))}">${logo(id)}${short(id)}</span>`; }).join('');
-        for (let i = teams.length; i < NSLOT[k]; i++) slots += '<span class="slot"><i class="ghost"></i>&nbsp;</span>';
-        html += `<div class="box res ${adv ? 'adv' : 'elim'}" data-node="${k}"><div class="bh"><b>${k}</b><span>${adv ? '晋级' : '淘汰'}</span></div><div class="slots">${slots}</div></div>`;
+        let slots = teams.map(id => { const pd = M.sw.rounds.some(rd => rd.matches.some(m => (m.a === id || m.b === id) && !m.official)); return `<span class="slot ${pd ? 'pd' : ''}" data-tm="${id}" title="${esc(nameOf(id))}">${crest(id)}${short(id)}</span>`; }).join('');
+        for (let i = teams.length; i < NSLOT[k]; i++) slots += '<span class="slot"><span class="crest ph"></span>&nbsp;</span>';
+        html += `<div class="box res ${adv ? 'adv' : 'elim'}" data-node="${k}"><div class="bh"><b>${dash(k)}</b><span>${adv ? '晋级淘汰赛' : '淘汰'}</span></div><div class="slots">${slots}</div></div>`;
       } else {
         const ms = byBox[k] || [], bo = (k[0] === '2' || k[2] === '2') ? 3 : 1;
         const rows = ms.map(rowHTML).join('') + phRow.repeat(Math.max(0, NMATCH[k] - ms.length));
         const simDraw = k === '0-0' && !M.byR[1] && !M.sw.awaitingDraw;
         const tag = k === '0-0' && M.sw.awaitingDraw ? '<span>待抽签</span>' : simDraw ? '<span class="hot">模拟抽签 · BO1</span>' : `<span class="${BOXTAG[k] ? 'hot' : ''}">${BOXTAG[k] ? BOXTAG[k] + ' · ' : ''}BO${bo}</span>`;
-        html += `<div class="box" data-node="${k}"><div class="bh"><b>${k}</b>${tag}</div><div class="rows">${rows}</div></div>`;
+        html += `<div class="box" data-node="${k}"><div class="bh"><b>${dash(k)}</b>${tag}</div><div class="rows">${rows}</div></div>`;
       }
     });
     html += '</div></div>';
@@ -812,9 +1052,9 @@ function renderFlow(M){
   $('flow').innerHTML = html;
   const open = M.sw.awaitingDraw || M.sw.rounds.some(rd => rd.matches.some(m => !m.official));
   if (M.sw.awaitingDraw) $('sw-tip').innerHTML = predTip(true, '首轮对阵还没抽签。');
-  else if (!M.byR[1]) $('sw-tip').innerHTML = '<div class="pred-tip"><b>模拟抽签</b>官方首轮还没抽签，下面的对阵是按规则模拟抽出来的，可以点「重新模拟抽签」换一组。点击队伍预测胜者，下一轮会按战绩自动配对。' + (M.pi.champ ? '' : '入围赛冠军未定，先用「待定」占位，也可以先去入围赛页预测冠军。') + '</div>';
+  else if (!M.byR[1]) $('sw-tip').innerHTML = '<div class="tip acc"><b>模拟抽签</b>官方首轮还没抽签，下面的对阵是按规则模拟的，可以点「重新模拟抽签」换一组。点击队伍预测胜者，下一轮按战绩自动配对。' + (M.pi.champ ? '' : '入围赛冠军未定，暂时用「待定」占位。') + '</div>';
   else $('sw-tip').innerHTML = predTip(open, '后续轮次的对阵要等上一轮打完才会抽签。');
-  $('sw-ctrl').innerHTML = S.pred ? (M.byR[1] ? '' : '<button class="pill-btn" id="btn-redraw">重新模拟抽签</button>') : '';
+  $('sw-ctrl').innerHTML = S.pred && !M.byR[1] ? '<button class="btn" id="btn-redraw">重新模拟抽签</button>' : '';
   drawSwiss();
 }
 function drawSwiss(){ drawEdges($('flow'), SW_EDGES); }
@@ -841,99 +1081,192 @@ function renderStand(M){
   const rows = M.ids.map(id => ({id, r: M.sw.rec[id], s: SIM && SIM[id]}));
   const sc = x => x.r.w === 3 ? 100 - x.r.l * 10 : x.r.l === 3 ? -100 + x.r.w * 10 : (x.r.w - x.r.l) * 5;
   rows.sort((a, b) => (sc(b) - sc(a)) || ((b.s ? b.s.adv : 0) - (a.s ? a.s.adv : 0)) || (TEAMS[b.id].elo - TEAMS[a.id].elo));
-  $('stand').innerHTML = '<thead><tr><th>#</th><th>队伍</th><th>战绩</th><th>状态</th><th>晋级概率</th><th style="text-align:right">夺冠概率</th></tr></thead><tbody>' +
-    rows.map((x, i) => { const [c, t] = status(x.r); return `<tr class="${x.r.l === 3 ? 'out' : ''}">
-      <td class="rk">${i + 1}</td>
-      <td><div class="tm">${logo(x.id)}<b>${short(x.id)}</b><small>${esc(nameOf(x.id))}${reg(x.id) ? ' · ' + reg(x.id) : ''}</small></div></td>
+  $('stand').innerHTML = '<thead><tr><th>#</th><th>队伍</th><th>战绩</th><th>状态</th><th>晋级概率</th><th style="text-align:right">夺冠</th><th></th></tr></thead><tbody>' +
+    rows.map((x, i) => { const [c, t] = status(x.r); return `<tr class="${x.r.l === 3 ? 'out' : ''} ${isF(x.id) ? 'fo' : ''}">
+      <td class="rk">${String(i + 1).padStart(2, '0')}</td>
+      <td><div class="tm">${crest(x.id)}<b>${short(x.id)}</b><small>${esc(nameOf(x.id))}${reg(x.id) ? ' · ' + reg(x.id) : ''}</small></div></td>
       <td><div class="rec"><b>${x.r.w}-${x.r.l}</b><span class="pips">${[0,1,2,3,4].map(k => `<i class="${x.r.h[k] || ''}"></i>`).join('')}</span></div></td>
       <td><span class="pill ${c}">${t}</span></td>
       <td><div class="prob"><div class="track"><i style="width:${x.s ? x.s.adv * 100 : 0}%"></i></div><span>${pct(x.s && x.s.adv)}</span></div></td>
-      <td class="num champ-p" style="text-align:right">${pct(x.s && x.s.champ)}</td></tr>`; }).join('') + '</tbody>';
+      <td style="text-align:right"><span class="pct champ">${pct(x.s && x.s.champ)}</span></td>
+      <td style="width:40px">${x.id === 'PIW' ? '' : `<button class="star" data-follow="${x.id}" aria-pressed="${isF(x.id)}" aria-label="关注 ${x.id}">★</button>`}</td></tr>`; }).join('') + '</tbody>';
   const usesPred = S.pred && Object.keys(S.picks).length;
-  $('prob-note').textContent = '战绩只计真实赛果。概率是按真实赛果' + (usesPred ? '和你的预测' : '') + '，用参考实力把剩余比赛模拟 2000 次得出，仅供参考。';
+  $('prob-note').textContent = '战绩只计真实赛果。概率按真实赛果' + (usesPred ? '和你的预测' : '') + '，用参考实力把剩余比赛模拟 2000 次得出，仅供参考。点 ★ 关注战队。';
 }
 
-/* ---------- knockout render ---------- */
+/* ---------- knockouts ---------- */
 function renderKO(M){
   const k = M.ko, seed = {};
   M.ids.forEach(id => { const r = M.sw.rec[id]; if (r.w === 3) seed[id] = '3-' + r.l; });
   const goal = k.champ
-    ? `<div class="goal ${k.f.official ? '' : 'pd'}" data-node="goal">${logo(k.champ)}<span class="tt">${k.champ}</span><small>${esc(nameOf(k.champ))}</small><small style="margin-top:6px">${k.f.official ? 'S16 世界冠军' : '我的预测冠军'}</small></div>`
-    : '<div class="goal ph" data-node="goal"><i class="ghost"></i><span class="tt" style="color:var(--muted)">冠军</span><small>11/15 揭晓</small></div>';
+    ? `<div class="goal ${k.f.official ? '' : 'pd'}" data-node="goal">${crest(k.champ, 'bare')}<span class="tt">${k.champ}</span><small>${esc(nameOf(k.champ))}</small><small>${k.f.official ? 'S16 世界冠军' : '我的预测冠军'}</small></div>`
+    : `<div class="goal ph" data-node="goal">${crest(null)}<span class="tt">冠军</span><small>11 月 15 日揭晓（北京时间）</small></div>`;
   $('bracket').innerHTML = '<svg class="edges" aria-hidden="true"></svg>' +
     `<div class="kcol">${k.qf.map((m, i) => kcard(m, '八强 ' + (i + 1), 'qf' + i, seed)).join('')}</div>` +
     `<div class="kcol">${k.sf.map((m, i) => kcard(m, '半决赛 ' + (i + 1), 'sf' + i, seed)).join('')}</div>` +
     `<div class="kcol">${kcard(k.f, '总决赛 · 纽约', 'f0', seed)}</div><div class="kcol">${goal}</div>`;
   const anyOpen = k.ready && [...k.qf, ...k.sf, k.f].some(m => m.key && !m.official);
-  $('ko-tip').innerHTML = !k.ready ? `<div class="pred-tip">八强对阵要等瑞士轮结束后（10 月 31 日）抽签产生。${S.pred ? '把瑞士轮全部预测完，这里会按规则模拟抽签。' : '打开右上角<b>预测</b>开关，可以先把瑞士轮猜完，这里会按规则模拟八强抽签。'}</div>`
-    : k.qfSim ? '<div class="pred-tip"><b>模拟对阵</b>八强官方抽签还没出，当前对阵是按你的瑞士轮预测模拟抽出来的。</div>' : predTip(anyOpen, '');
-  $('ko-ctrl').innerHTML = k.qfSim ? '<button class="pill-btn" id="btn-qf">重新模拟抽签</button>' : '';
+  $('ko-tip').innerHTML = !k.ready ? `<div class="tip">八强对阵要等瑞士轮结束后（10 月 31 日）抽签产生。${S.pred ? '把瑞士轮全部预测完，这里会按规则模拟八强抽签。' : '打开右上角<b>预测</b>开关，可以先把瑞士轮猜完。'}</div>`
+    : k.qfSim ? '<div class="tip acc"><b>模拟对阵</b>八强官方抽签还没出，当前对阵是按你的瑞士轮预测模拟抽出来的。</div>' : predTip(anyOpen, '');
+  $('ko-ctrl').innerHTML = k.qfSim ? '<button class="btn" id="btn-qf">重新模拟抽签</button>' : '';
   drawKO();
 }
 function drawKO(){
   if (!MODEL) return;
-  const k = MODEL.ko, E = [];
-  const cls = m => m.res ? (m.official ? 'on' : 'pr') : '';
+  const k = MODEL.ko, E = [], cls = m => m.res ? (m.official ? 'on' : 'pr') : '';
   [0, 1, 2, 3].forEach(i => E.push({f:'qf' + i, t:'sf' + (i >> 1), k: k.qf[i].res ? 'w' : 'n', cls: cls(k.qf[i])}));
   [0, 1].forEach(i => E.push({f:'sf' + i, t:'f0', k: k.sf[i].res ? 'w' : 'n', cls: cls(k.sf[i])}));
   E.push({f:'f0', t:'goal', k: k.f.res ? 'w' : 'n', cls: cls(k.f)});
   drawEdges($('bracket'), E);
 }
 
-/* ---------- hero / schedule ---------- */
-function resolve(m){
-  if (m.st === 'pi') { const n = PI_ORDER.find(k => PI_OFF[k] === m), node = MODEL.pi.nodes[n]; return {a: node.a, b: node.b}; }
-  return {a: m.a, b: m.b};
-}
-function nextMatch(){ const now = Date.now(); return MATCHES.find(m => m.live) || MATCHES.find(m => m.state !== 'completed' && m.t > now - 6 * 3600e3); }
-function renderHero(){
-  const nx = nextMatch();
-  let left;
-  if (nx) {
-    const {a, b} = resolve(nx);
-    const team = (id, side) => `<div class="nx-team ${side}">${logo(id)}<div>${id ? short(id) : '待定'}<small>${id ? esc(nameOf(id)) : '等待上一场结果'}</small></div></div>`;
-    const mid = nx.live ? `<div class="nx-mid live"><b>${nx.ga}:${nx.gb}</b><small>BO${nx.bo} 进行中</small></div>` : `<div class="nx-mid"><b>${fTime(nx.t)}</b><small>${fMD(nx.t)} ${fWk(nx.t)} · ${tzLabel()}</small></div>`;
-    left = `<div class="card next"><div class="nx-k"><span class="badge ${nx.live ? 'live' : ''}">${nx.live ? 'LIVE' : '下一场'}</span>${stageLabel(nx)}${nx.st === 'pi' ? ' · BO5' : ''}</div>
-      <div class="nx-teams">${team(a, 'a')}${mid}${team(b, 'b')}</div>
-      <div class="nx-foot"><span class="cd" id="cd"></span><div class="watch-row">${LIVE.slice(0, 3).map((l, i) => `<a class="pill-btn ${i === 0 ? 'gold' : ''}" href="${l.url}" target="_blank" rel="noopener">${i === 0 ? '▶ ' : ''}${l.name}</a>`).join('')}<button class="pill-btn" data-open="live">更多</button></div></div></div>`;
-  } else left = '<div class="card next"><div class="nx-k">S16 全部比赛已结束</div></div>';
-  const done = MATCHES.filter(m => m.res).slice(-4).reverse();
-  const rr = m => { const w = m.res.w; return `<div class="rrow"><div class="when">${fMD(m.t)}<br>${stageLabel(m).replace(/ · BO\d/, '').replace('入围赛 · ', '')}</div><div class="rline"><span class="rt a ${w === m.a ? '' : 'l'}">${logo(m.a)}${m.a}</span><span class="rs">${scoreAB(m)}</span><span class="rt b ${w === m.b ? '' : 'l'}">${logo(m.b)}${m.b}</span></div></div>`; };
-  const fresh = `<span class="fresh ${LIVE_DATA ? 'on' : ''}">${LIVE_DATA ? '实时 · ' + fTime(DATA_AT) + ' 更新' : '数据 ' + fMD(DATA_AT) + ' ' + fTime(DATA_AT)}</span>`;
-  const right = `<div class="card recent"><h3><span>最近赛果</span>${fresh}</h3>${done.length ? done.map(rr).join('') : '<p class="sub">还没有已结束的比赛。</p>'}</div>`;
-  $('hero').innerHTML = left + right;
-  tick();
-}
-function tick(){
-  const el = $('cd'); if (!el) return;
-  const nx = nextMatch(), now = Date.now(); if (!nx) return;
-  if (nx.live) { el.innerHTML = '正在直播'; return; }
-  if (nx.t <= now) { el.innerHTML = '即将开始'; return; }
-  let s = Math.floor((nx.t - now) / 1000); const d = Math.floor(s / 86400); s %= 86400;
-  const p = n => String(n).padStart(2, '0');
-  el.innerHTML = '距开赛 ' + (d ? `<b>${d}</b>天` : '') + `<b>${p(Math.floor(s / 3600))}</b>时<b>${p(Math.floor(s % 3600 / 60))}</b>分<b>${p(s % 60)}</b>秒`;
-}
+/* ---------- schedule ---------- */
 function renderSchedule(){
+  const only = S.onlyFollow && S.follow.length;
+  $('sched-filter').innerHTML = S.follow.length ? `<button data-filter="0" aria-pressed="${!only}">全部</button><button data-filter="1" aria-pressed="${!!only}">只看关注</button>` : '';
+  $('sched-filter').hidden = !S.follow.length;
   const days = []; let cur = null;
-  MATCHES.forEach(m => { const k = fDayKey(m.t); if (!cur || cur.k !== k) days.push(cur = {k, t: m.t, ms: []}); cur.ms.push(m); });
+  MATCHES.forEach(m => {
+    const r = resolve(m);
+    if (only && !(isF(r.a) || isF(r.b))) return;
+    const k = fDayKey(m.t); if (!cur || cur.k !== k) days.push(cur = {k, t: m.t, ms: []}); cur.ms.push(m);
+  });
   const today = fDayKey(Date.now());
-  $('sched').innerHTML = days.map(d => {
+  $('sched').innerHTML = days.length ? days.map(d => {
     const past = d.ms.every(m => m.res) && d.k < today;
-    return `<div class="day ${past ? 'past' : ''}"><h3>${fMD(d.t)} <small>${fWk(d.t)}</small>${d.k === today ? '<span class="today">今天</span>' : ''}</h3><div class="day-list">${d.ms.map(m => {
+    return `<div class="day ${past ? 'past' : ''}"><div class="dd"><b>${fMD(d.t).replace('/', '.')}</b><small>${fWk(d.t)} · ${d.ms.length} 场</small>${d.k === today ? '<span class="today">TODAY</span>' : ''}</div><div>${d.ms.map(m => {
       const {a, b} = resolve(m), w = m.res && m.res.w;
-      const t = (id, side) => `<span class="rt ${side} ${w && w !== id ? 'l' : ''}">${logo(id)}${id ? short(id) : '<span style="color:var(--faint);font-weight:500">待定</span>'}</span>`;
-      const mid = m.live ? `<span class="rs" style="color:var(--lose)">${m.ga}:${m.gb}</span>` : m.res ? `<span class="rs">${scoreAB(m)}</span>` : '<span class="rs" style="color:var(--faint);font-size:12px">vs</span>';
+      const t = (id, s) => `<span class="tt ${s} ${w && w !== id ? 'l' : ''} ${isF(id) ? 'fo' : ''}">${crest(id)}${id ? short(id) : '<span class="tbd">待定</span>'}</span>`;
+      const mid = m.live ? `<span class="sc live">${m.ga}:${m.gb}</span>` : m.res ? `<span class="sc">${scoreAB(m)}</span>` : '<span class="sc v">VS</span>';
       const st = m.live ? '<span class="stt live">LIVE</span>' : m.res ? '<span class="stt">已结束</span>' : `<span class="stt">BO${m.bo}</span>`;
-      return `<div class="srow ${m.res ? 'done' : ''}"><span class="t">${fTime(m.t)}</span><span class="stg">${stageLabel(m).replace(/ · BO\d/, '')}</span><span class="teams">${t(a, 'a')}${mid}${t(b, 'b')}</span>${st}</div>`;
+      const attrs = a && b ? `data-detail="${m.id}"` : 'disabled';
+      return `<button class="srow" ${attrs}><span class="t">${fTime(m.t)}</span><span class="stg">${stageLabel(m).replace(/ · BO\d/, '')}</span><span class="mu">${t(a, 'a')}${mid}${t(b, 'b')}</span>${st}</button>`;
     }).join('')}</div></div>`;
-  }).join('');
-}
-function renderLive(){
-  const all = LIVE.concat(S.links.map((l, i) => ({name:l.name, short:l.name.slice(0, 1), color:'#3a4558', note:'自定义', url:l.url, own:i})));
-  $('lgrid').innerHTML = all.map(l => `<a class="lcard" href="${esc(l.url)}" target="_blank" rel="noopener"><span class="lic" style="background:${l.color}">${esc(l.short)}</span><div><b>${esc(l.name)}</b><small>${esc(l.note)}</small></div>${l.own !== undefined ? `<button class="x" data-del="${l.own}" aria-label="删除">×</button>` : ''}</a>`).join('');
+  }).join('') : '<p class="note">你关注的队伍还没有安排比赛。</p>';
 }
 
-/* ---------- share ---------- */
+/* ---------- match detail ---------- */
+const DD = {ver: null, champs: {}, loading: null};
+function ddragon(){
+  if (DD.loading) return DD.loading;
+  DD.loading = (async () => {
+    try {
+      DD.ver = (await (await fetch('https://ddragon.leagueoflegends.com/api/versions.json')).json())[0];
+      const c = await (await fetch(`https://ddragon.leagueoflegends.com/cdn/${DD.ver}/data/zh_CN/champion.json`)).json();
+      Object.values(c.data).forEach(x => DD.champs[x.id] = x.name);
+    } catch (e) {}
+    if (DR) renderDrawer();
+  })();
+  return DD.loading;
+}
+async function feed(path){ const r = await fetch('https://feed.lolesports.com/livestats/v1/' + path); if (r.status === 204) return null; if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
+async function loadGame(g){
+  const w0 = await feed('window/' + g.id);
+  if (!w0 || !w0.frames || !w0.frames.length) return {none: true};
+  const t0 = Date.parse(w0.frames[0].rfc460Timestamp);
+  let t = g.state === 'completed' ? t0 + 90 * 60e3 : Date.now() - 60e3;
+  t = Math.floor(Math.min(t, Date.now() - 60e3) / 10000) * 10000;
+  const w = t > t0 ? await feed('window/' + g.id + '?startingTime=' + new Date(t).toISOString()) : null;
+  const frames = w && w.frames && w.frames.length ? w.frames : w0.frames;
+  return {meta: w0.gameMetadata, f: frames[frames.length - 1]};
+}
+let DR = null, DR_TIMER = null;
+const selGame = () => DR && DR.games && DR.games.find(g => g.n === DR.sel);
+async function loadEvent(){
+  const id = DR.id, ev = (await apiGet(`/getEventDetails?hl=zh-CN&id=${id}`)).event;
+  if (!DR || DR.id !== id) return;
+  const byId = {}; ev.match.teams.forEach(t => byId[t.id] = t.code);
+  DR.byId = byId;
+  DR.games = ev.match.games.filter(g => g.state !== 'unneeded').map(g => ({n: g.number, id: g.id, state: g.state, vods: g.vods || [], side: Object.fromEntries(g.teams.map(t => [byId[t.id], t.side]))}));
+  if (DR.sel == null) { const played = DR.games.filter(g => g.state !== 'unstarted'); DR.sel = (played.find(g => g.state === 'inProgress') || played[played.length - 1] || DR.games[0] || {}).n; }
+}
+async function loadSel(force){
+  const g = selGame();
+  if (g && g.state !== 'unstarted' && (force || !DR.cache[g.id])) {
+    try { const d = await loadGame(g); if (DR) DR.cache[g.id] = d; } catch (e) { if (DR && !DR.cache[g.id]) DR.cache[g.id] = {err: true}; }
+  }
+  renderDrawer();
+}
+async function openDetail(id){
+  const m = MATCHES.find(x => x.id === id); if (!m) return;
+  DR = {id, games: null, sel: null, cache: {}, err: false, loading: m.state !== 'unstarted'};
+  $('drawer').hidden = false; $('scrim').hidden = false; document.body.style.overflow = 'hidden';
+  renderDrawer(); $('drawer').scrollTop = 0; $('drawer').querySelector('.dr-close').focus();
+  clearInterval(DR_TIMER);
+  if (m.state === 'unstarted' && !m.live) return;
+  ddragon();
+  try { await loadEvent(); if (!DR || DR.id !== id) return; DR.loading = false; renderDrawer(); loadSel(); }
+  catch (e) { if (DR && DR.id === id) { DR.loading = false; DR.err = true; renderDrawer(); } return; }
+  DR_TIMER = setInterval(async () => {
+    const cur = DR && MATCHES.find(x => x.id === DR.id);
+    if (!cur || !(cur.live || (selGame() || {}).state === 'inProgress')) return;
+    try { await loadEvent(); } catch (e) {}
+    loadSel(true);
+  }, 10000);
+}
+function closeDetail(){ DR = null; clearInterval(DR_TIMER); $('drawer').hidden = true; $('scrim').hidden = true; document.body.style.overflow = ''; }
+const ROLES = [['top', '上单'], ['jungle', '打野'], ['mid', '中单'], ['bottom', '下路'], ['support', '辅助']];
+const kfmt = v => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : String(v);
+function gamePanel(m, g, d){
+  const {a, b} = resolve(m);
+  const blue = DR.byId[d.meta.blueTeamMetadata.esportsTeamId], aBlue = blue ? blue === a : g.side[a] === 'blue';
+  const T = id => (id === a) === aBlue ? d.f.blueTeam : d.f.redTeam;
+  const P = id => (id === a) === aBlue ? d.meta.blueTeamMetadata.participantMetadata : d.meta.redTeamMetadata.participantMetadata;
+  const A = T(a), B = T(b), done = d.f.gameState === 'finished';
+  const winner = done ? ((A.towers - B.towers) || (A.totalGold - B.totalGold)) > 0 ? a : b : null;
+  const sideCn = id => ((id === a) === aBlue) ? '蓝方' : '红方';
+  const row = (lab, va, vb, show, extra) => {
+    const tot = va + vb, pa = tot ? va / tot * 100 : 50;
+    return `<div class="trow"><span class="v ${va > vb ? 'lead' : ''}">${show(va)}</span><div><div class="lab">${lab}</div><div class="split"><i class="${va > vb ? 'lead' : ''}" style="width:${pa}%"></i><i class="${vb > va ? 'lead' : ''}" style="width:${100 - pa}%"></i></div>${extra || ''}</div><span class="v r ${vb > va ? 'lead' : ''}">${show(vb)}</span></div>`;
+  };
+  const drags = `<div class="drags">${A.dragons.map(x => `<i class="${x}" title="${x}"></i>`).join('')}<span style="width:14px"></span>${B.dragons.map(x => `<i class="${x}" title="${x}"></i>`).join('')}</div>`;
+  const id2 = x => x;
+  const tape = row('经济', A.totalGold, B.totalGold, kfmt) + row('击杀', A.totalKills, B.totalKills, id2) + row('推塔', A.towers, B.towers, id2) +
+    row('小龙', A.dragons.length, B.dragons.length, id2, drags) + row('大龙', A.barons, B.barons, id2) + row('水晶', A.inhibitors, B.inhibitors, id2);
+  const stat = (team, pid) => (team.participants || []).find(x => x.participantId === pid) || {};
+  const pl = (id, role, cls) => {
+    const p = P(id).find(x => x.role === role); if (!p) return `<div class="pl ${cls}"></div>`;
+    const s = stat(T(id), p.participantId), name = p.summonerName.replace(new RegExp('^' + id + '\\s+', 'i'), '');
+    const img = DD.ver ? `<img src="https://ddragon.leagueoflegends.com/cdn/${DD.ver}/img/champion/${p.championId}.png" alt="" onerror="this.style.visibility='hidden'">` : '<span class="noimg"></span>';
+    return `<div class="pl ${cls}">${img}<div><b>${esc(name)}</b><small>${esc(DD.champs[p.championId] || p.championId)}</small></div><span class="kda">${s.kills ?? '–'}/${s.deaths ?? '–'}/${s.assists ?? '–'}<small><br>${s.creepScore ?? '–'} 刀</small></span></div>`;
+  };
+  const vod = (() => { const v = g.vods.find(x => x.provider === 'youtube' && x.locale === 'zh-TW') || g.vods.find(x => x.provider === 'youtube' && x.locale === 'en-US') || g.vods.find(x => x.provider === 'youtube'); return v ? `https://www.youtube.com/watch?v=${v.parameter}&t=${Math.floor((v.startMillis || 0) / 1000)}s` : null; })();
+  const stateTxt = done ? `${winner} 获胜` : '进行中 · 每 10 秒刷新';
+  return `<div class="ghead"><h4>第 ${g.n} 局</h4><span class="meta">${a} ${sideCn(a)} · ${b} ${sideCn(b)} · <b style="color:${done ? 'var(--ink)' : 'var(--live)'}">${stateTxt}</b></span></div>
+    <div class="tape">${tape}</div>
+    <div class="lineup">${ROLES.map(([r, cn]) => `<div class="lrow">${pl(a, r, 'a')}<span class="role">${cn}</span>${pl(b, r, 'b')}</div>`).join('')}</div>
+    ${vod && done ? `<div class="dr-btns"><a class="btn solid" href="${vod}" target="_blank" rel="noopener">▶ 看这一局回放</a></div>` : ''}`;
+}
+function renderDrawer(){
+  if (!DR) return;
+  const m = MATCHES.find(x => x.id === DR.id); if (!m) return closeDetail();
+  const {a, b} = resolve(m);
+  const team = (id, cls) => `<div class="t ${cls}">${crest(id, 'bare')}<div><b>${id ? short(id) : '待定'}</b><small>${id ? esc(nameOf(id)) : ''}</small>${id && id !== 'PIW' ? `<button class="star" data-follow="${id}" aria-pressed="${isF(id)}">${isF(id) ? '★ 已关注' : '☆ 关注'}</button>` : ''}</div></div>`;
+  const sc = m.live ? `${m.ga}:${m.gb}<small style="color:var(--live)">LIVE</small>` : m.res ? `${scoreAB(m)}<small>已结束</small>` : `VS<small>${fTime(m.t)} 开赛</small>`;
+  let body;
+  if (m.state === 'unstarted' && !m.live) {
+    body = `<div class="dr-empty">比赛将于 ${fMD(m.t)} ${fWk(m.t)} ${fTime(m.t)}（${tzLabel()}）开始，BO${m.bo}。<br>开赛后这里会显示每一局的实时数据。</div><div class="dr-btns" style="justify-content:center">${LIVE.slice(0, 3).map((l, i) => `<a class="btn ${i === 0 ? 'solid' : ''}" href="${l.url}" target="_blank" rel="noopener">${l.name}</a>`).join('')}</div>`;
+  } else if (DR.loading) body = '<div class="dr-empty">正在读取比赛数据…</div>';
+  else if (DR.err) body = '<div class="dr-empty">没能读取到官方比赛数据。<br>当前环境可能无法联网（例如在 Claude 预览里），请在正式网站打开，或稍后再试。</div>';
+  else {
+    const g = selGame();
+    const tabs = `<div class="gtabs">${DR.games.map(x => { const d = DR.cache[x.id]; let w = ''; if (d && d.f && d.f.gameState === 'finished') { const aB = d.meta && DR.byId[d.meta.blueTeamMetadata.esportsTeamId]; const bt = d.f.blueTeam, rt = d.f.redTeam, blueWin = ((bt.towers - rt.towers) || (bt.totalGold - rt.totalGold)) > 0; const redCode = DR.byId[d.meta.redTeamMetadata.esportsTeamId]; w = crest(blueWin ? aB : redCode); } return `<button data-game="${x.n}" aria-pressed="${x.n === DR.sel}" ${x.state === 'unstarted' ? 'disabled' : ''}>${x.state === 'inProgress' ? '<i class="lvd"></i>' : ''}G${x.n}${w}</button>`; }).join('')}</div>`;
+    let panel;
+    if (!g || g.state === 'unstarted') panel = '<div class="dr-empty">这一局还没开始。</div>';
+    else { const d = DR.cache[g.id]; panel = !d ? '<div class="dr-empty">正在读取第 ' + g.n + ' 局数据…</div>' : d.err ? '<div class="dr-empty">这一局的数据暂时读取失败，稍后再试。</div>' : d.none ? '<div class="dr-empty">这一局暂时没有数据。</div>' : gamePanel(m, g, d); }
+    body = tabs + panel + (m.live ? `<div class="dr-btns">${LIVE.slice(0, 3).map((l, i) => `<a class="btn ${i === 0 ? 'acc' : ''}" href="${l.url}" target="_blank" rel="noopener">${i === 0 ? '▶ ' : ''}${l.name}</a>`).join('')}</div>` : '');
+  }
+  $('drawer').innerHTML = `<div class="dr-top"><button class="dr-close" data-close-detail aria-label="关闭">×</button>
+      <div class="dr-k">${m.live ? '<span class="live-tag">LIVE</span>' : '<span class="kicker" style="color:#9fb0ff">Match Center</span>'}<span>${stageLabel(m)} · ${fMD(m.t)} ${fWk(m.t)} ${fTime(m.t)}</span></div>
+      <div class="dr-sb">${team(a, 'a')}<div class="s">${sc}</div>${team(b, 'b')}</div></div>
+    <div class="dr-body">${body}</div>`;
+}
+
+/* ---------- live links / share ---------- */
+function renderLive(){
+  const all = LIVE.concat(S.links.map((l, i) => ({name:l.name, short:l.name.slice(0, 1), color:'#3a3a44', note:'自定义', url:l.url, own:i})));
+  $('lgrid').innerHTML = all.map(l => `<a class="lcard" href="${esc(l.url)}" target="_blank" rel="noopener"><span class="lic" style="background:${l.color}">${esc(l.short)}</span><div><b>${esc(l.name)}</b><small>${esc(l.note)}</small></div>${l.own !== undefined ? `<button class="x" data-del="${l.own}" aria-label="删除">×</button>` : ''}</a>`).join('');
+}
 function predSummary(M){
   const rec = M.sw.rec;
   const adv = M.sw.rounds.length ? M.ids.filter(id => rec[id].w === 3).sort((a, b) => rec[a].l - rec[b].l) : [];
@@ -941,12 +1274,12 @@ function predSummary(M){
 }
 function renderPoster(M){
   const {adv, ko, pi} = predSummary(M), rec = M.sw.rec;
-  const logos = (ids, sub) => `<div class="plogos">${ids.map(id => `<span>${logo(id)}${short(id)}${sub ? `<em style="font-style:normal;color:var(--faint)">${sub(id)}</em>` : ''}</span>`).join('')}</div>`;
-  let h = '<div class="eb">2026 英雄联盟全球总决赛 · 我的预测</div>';
+  const logos = (ids, sub) => `<div class="plogos">${ids.map(id => `<span>${crest(id)}${short(id)}${sub ? `<em>${sub(id)}</em>` : ''}</span>`).join('')}</div>`;
+  let h = '<span class="kicker">S16 · 我的预测</span>';
   if (ko.champ) {
-    h += `<div class="champ">${logo(ko.champ)}<span class="tt">${ko.champ}</span><small>冠军 · 决赛 ${scoreAB(ko.f)} 击败 ${ko.runnerUp}</small></div>`;
+    h += `<div class="champ">${crest(ko.champ)}<span class="tt">${ko.champ}</span><small>冠军 · 决赛 ${scoreAB(ko.f)} 击败 ${ko.runnerUp}</small></div>`;
     h += `<div class="prow"><small>四强</small>${logos(ko.sf.flatMap(m => [m.a, m.b]))}</div>`;
-  } else h += '<p class="sub" style="margin:18px auto 4px">还没预测到冠军。打开预测开关后，在各阶段点选未开赛比赛的胜者。</p>';
+  } else h += '<p style="margin:18px auto 4px;color:var(--night-mute);font-size:13px">还没预测到冠军。打开预测开关后点选未开赛比赛的胜者，或点「按实力模拟」。</p>';
   if (adv.length) h += `<div class="prow"><small>瑞士轮晋级</small>${logos(adv, id => rec[id].w + '-' + rec[id].l)}</div>`;
   if (pi.champ) h += `<div class="prow"><small>入围赛冠军</small>${logos([pi.champ])}</div>`;
   $('poster').innerHTML = h;
@@ -966,9 +1299,10 @@ let MODEL;
 function renderAll(){
   MODEL = compute();
   $('pred').checked = S.pred; $('open-share').hidden = !S.pred; $('btn-sim').hidden = !S.pred;
-  $('updated').textContent = (LIVE_DATA ? '实时数据，' : '数据快照，') + '更新于 ' + fMD(DATA_AT) + ' ' + fTime(DATA_AT) + '（' + tzLabel() + '）';
-  renderHero(); renderPI(MODEL); renderPots(MODEL); renderFlow(MODEL); renderStand(MODEL); renderKO(MODEL); renderSchedule();
+  $('updated').textContent = (LIVE_DATA ? '实时数据 · ' : '数据快照 · ') + fMD(DATA_AT) + ' ' + fTime(DATA_AT) + ' 更新（' + tzLabel() + '）';
+  renderTicker(); renderCover(); renderFollow(); renderPI(MODEL); renderPots(MODEL); renderFlow(MODEL); renderStand(MODEL); renderKO(MODEL); renderSchedule();
   if (!$('share').hidden) renderPoster(MODEL);
+  if (DR) renderDrawer();
   clearTimeout(simTimer);
   simTimer = setTimeout(() => { const M = MODEL; SIM = simulate(M, 2000); if (M === MODEL) renderStand(M); }, 40);
 }
@@ -981,6 +1315,7 @@ function pick(key, team, bo){
   if (cur && cur.w === team) delete S.picks[key]; else S.picks[key] = {w: team, s: DEF_SCORE[bo]};
   save(); renderAll();
 }
+function setScore(key, s){ if (S.picks[key]) { S.picks[key].s = s; delete S.picks[key].auto; save(); renderAll(); } }
 function simulateRest(){
   Object.keys(S.picks).forEach(k => { if (S.picks[k].auto) delete S.picks[k]; });
   const manual = Object.keys(S.picks), seed = () => (Math.random() * 1e9) | 0;
@@ -989,7 +1324,7 @@ function simulateRest(){
   const rng = mulberry32(seed());
   for (let i = 0; i < 14; i++) {
     const M = compute(), pend = [];
-    PI_ORDER.forEach(n => { const m = M.pi.nodes[n]; if (m.a && m.b && !m.res) pend.push(m); });
+    PI_ORDER.forEach(n => { const m = M.pi.nodes[n]; if (m.a && m.b && !m.res && !m.live) pend.push(m); });
     const last = M.sw.rounds[M.sw.rounds.length - 1];
     if (last) last.matches.forEach(m => { if (!m.res && !m.live) pend.push(m); });
     if (M.ko.ready) [...M.ko.qf, ...M.ko.sf, M.ko.f].forEach(m => { if (m.key && !m.res && !m.live) pend.push(m); });
@@ -998,7 +1333,6 @@ function simulateRest(){
   }
   save(); renderAll(); toast('已按实力模拟全部未开赛比赛，再点一次换一组结果');
 }
-function setScore(key, s){ if (S.picks[key]) { S.picks[key].s = s; save(); renderAll(); } }
 function currentStage(){
   const now = Date.now(), last = st => Math.max(...MATCHES.filter(m => m.st === st).map(m => m.t));
   if (now < last('pi') + 6 * 3600e3) return 'pi';
@@ -1010,12 +1344,12 @@ function setTab(t){
   ['pi', 'swiss', 'ko', 'schedule'].forEach(k => $('p-' + k).hidden = k !== t);
   requestAnimationFrame(redraw);
 }
-function openModal(id){ if (id === 'share') renderPoster(MODEL); if (id === 'live') renderLive(); $(id).hidden = false; const c = $(id).querySelector('[data-close]'); c && c.focus(); }
-function closeModals(){ ['live', 'share'].forEach(id => $(id).hidden = true); }
+function openModal(id){ if (id === 'share') renderPoster(MODEL); if (id === 'live') renderLive(); if (id === 'teams') renderTeamPicker(); $(id).hidden = false; const c = $(id).querySelector('[data-close]'); c && c.focus(); }
+function closeModals(){ ['live', 'share', 'teams'].forEach(id => $(id).hidden = true); }
 let toastTimer;
 function toast(msg){
   let el = document.querySelector('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
-  el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 2200);
+  el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 2400);
 }
 async function copy(text, okMsg){
   try { await navigator.clipboard.writeText(text); toast(okMsg); }
@@ -1027,16 +1361,22 @@ document.addEventListener('click', e => {
   const el = t.closest('[data-key][data-team]'); if (el) { pick(el.dataset.key, el.dataset.team, +el.dataset.bo); return; }
   const cy = t.closest('[data-cycle]'); if (cy) { const p = S.picks[cy.dataset.cycle]; if (p) setScore(cy.dataset.cycle, p.s === '2-0' ? '2-1' : '2-0'); return; }
   const ss = t.closest('[data-setscore]'); if (ss) { setScore(ss.dataset.setscore, ss.dataset.s); return; }
-  const tab = t.closest('[data-tab]'); if (tab) { setTab(tab.dataset.tab); return; }
+  const fo = t.closest('[data-follow]'); if (fo) { toggleFollow(fo.dataset.follow); return; }
+  const gm = t.closest('[data-game]'); if (gm) { DR.sel = +gm.dataset.game; loadSel(); return; }
+  if (t.closest('[data-close-detail]') || t === $('scrim')) { closeDetail(); return; }
+  const dt = t.closest('[data-detail]'); if (dt) { openDetail(dt.dataset.detail); return; }
+  const fl = t.closest('[data-filter]'); if (fl) { S.onlyFollow = fl.dataset.filter === '1'; save(); renderSchedule(); return; }
+  const tab = t.closest('[data-tab]'); if (tab) { e.preventDefault(); setTab(tab.dataset.tab === 'cur' ? STAGE_NOW : tab.dataset.tab); return; }
   const op = t.closest('[data-open]'); if (op) { openModal(op.dataset.open); return; }
   const del = t.closest('[data-del]'); if (del) { e.preventDefault(); S.links.splice(+del.dataset.del, 1); save(); renderLive(); return; }
   if (t.closest('[data-close]') || t.classList.contains('modal')) { closeModals(); return; }
   const id = (t.closest('button') || {}).id;
   if (id === 'open-live') openModal('live');
   else if (id === 'open-share') openModal('share');
+  else if (id === 'open-teams') openModal('teams');
+  else if (id === 'btn-sim') simulateRest();
   else if (id === 'btn-qf') { S.qfSeed = (Math.random() * 1e9) | 0; save(); renderAll(); }
   else if (id === 'btn-redraw') { S.drawSeed = (Math.random() * 1e9) | 0; save(); renderAll(); toast('已重新模拟首轮抽签'); }
-  else if (id === 'btn-sim') simulateRest();
   else if (id === 'btn-clear') {
     const b = $('btn-clear');
     if (clearArmed) { clearTimeout(clearArmed); clearArmed = null; S.picks = {}; save(); renderAll(); b.textContent = '清空预测'; b.classList.remove('danger'); toast('已清空全部预测'); }
@@ -1053,7 +1393,10 @@ document.addEventListener('click', e => {
     } catch (err) { $('importmsg').textContent = '无法识别这段预测码，请确认复制完整。'; }
   }
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (DR) closeDetail(); else closeModals(); }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.kcard.tap')) { e.preventDefault(); openDetail(e.target.dataset.detail); }
+});
 $('pred').addEventListener('change', e => { S.pred = e.target.checked; save(); renderAll(); toast(S.pred ? '预测已开启：点选未开赛比赛的胜者' : '已切回真实赛况'); });
 $('flow').addEventListener('mouseover', e => { const el = e.target.closest('[data-tm]'); highlight(el ? el.dataset.tm : null); });
 $('flow').addEventListener('mouseleave', () => highlight(null));

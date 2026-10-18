@@ -14,9 +14,11 @@
 | `index.html` | 构建好的网站，直接部署这个文件 |
 | `src/page.html` | 页面源码（样式、结构、脚本） |
 | `src/logos.js` | 内嵌的战队 logo |
+| `fonts/` | 自托管字体（Archivo、Noto Serif SC 标题子集），不依赖 Google Fonts |
 | `src/data.js` | 赛程与比分快照（离线时使用） |
 | `scripts/fetch_data.py` | 从官方接口生成 `src/data.js` |
 | `scripts/build.py` | 合成 `index.html` |
+| `scripts/update_fonts.py` | 标题出现新汉字后，重新生成衬线字体子集 |
 
 ## 更新
 

@@ -374,6 +374,7 @@ tr.out td{opacity:.42}
 .pk-sum b.acc{color:var(--accent)}
 .pk-sum small{display:block;margin-top:6px;color:var(--mute);font-size:12px;white-space:nowrap}
 @media (max-width:600px){.pk-sum{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pk-season{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-6px 0 22px;font-size:12.5px;color:var(--mute)}
 .pk-round{margin-bottom:44px}
 .pk-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--ink)}
 .pk-h h3{font:900 28px var(--f-head);margin-top:8px}
@@ -1405,6 +1406,7 @@ function renderPK(){
   if (open) tab.insertAdjacentHTML('beforeend', `<span class="cnt" title="还有 ${open} 场可以预测">${open}</span>`);
   const all = pkStat(rounds.flatMap(rd => rd.ms));
   const sum = `<div class="pk-sum"><div><b>${all.hit}<span style="color:var(--faint)">/${all.decided}</span></b><small>命中 / 已出结果</small></div><div><b class="acc">${all.decided ? Math.round(all.hit / all.decided * 100) + '%' : '–'}</b><small>总准确率</small></div><div><b>${all.picked}</b><small>已预测场次</small></div><div><b>${open}</b><small>现在可以预测</small></div></div>
+    <div class="pk-season">${all.decided ? `<button class="btn solid" data-season>${MATCHES.some(m => m.st === 'f' && m.res) ? '生成整届预测战报' : '生成截至目前的整届战报'}</button><span>汇总所有轮次：总准确率、每轮对比、最长连中、冷门命中</span>` : '<span>有预测出结果后，可以在这里生成整届汇总战报。</span>'}</div>
     <p class="pk-note">预测时间由你的浏览器记录。每次提交前会先核对 LoL Esports 官方数据，确认比赛还没开始，核对过的预测在预测单和战报上会注明。记录只保存在这台设备的浏览器里，换设备或清除浏览器数据会丢失。</p>`;
   const swR = Object.keys(MODEL.byR).length, swOver = MATCHES.filter(m => m.st === 'swiss').every(m => m.res);
   let next = '';
@@ -1526,6 +1528,122 @@ async function openReport(id, mode = 'full'){
     (pre ? '<p class="note">开赛前还可以改，改完再点一次「确认预测」生成新的预测单。这一轮打完后，可以生成带准确率的完整战报。</p>' : '');
 }
 
+/* ---------- season report: every round of pick'em combined ---------- */
+function seasonData(){
+  const rounds = pkRounds(), all = rounds.flatMap(rd => rd.ms.map(m => Object.assign({rd}, m)));
+  const picked = all.filter(m => S.pk[m.id]), decided = picked.filter(m => m.res).sort((x, y) => x.t - y.t);
+  let streak = 0, best = 0; decided.forEach(m => { streak = S.pk[m.id].w === m.res.w ? streak + 1 : 0; best = Math.max(best, streak); });
+  const hits = decided.filter(m => S.pk[m.id].w === m.res.w);
+  const byTeam = {}; hits.forEach(m => byTeam[S.pk[m.id].w] = (byTeam[S.pk[m.id].w] || 0) + 1);
+  const fav = Object.entries(byTeam).sort((x, y) => y[1] - x[1])[0];
+  const lead = picked.length ? picked.reduce((a, m) => a + (m.t - S.pk[m.id].t), 0) / picked.length : 0;
+  const upsets = hits.map(m => { const w = S.pk[m.id].w, l = w === m.a ? m.b : m.a; return {m, w, l, gap: TEAMS[l].elo - TEAMS[w].elo}; }).filter(u => u.gap > 0).sort((x, y) => y.gap - x.gap).slice(0, 3);
+  const per = rounds.map(rd => ({rd, st: pkStat(rd.ms)})).filter(x => x.st.picked);
+  return {rounds, all, picked, decided, hits, best, fav, lead, upsets, per, finished: MATCHES.some(m => m.st === 'f' && m.res)};
+}
+async function drawSeasonReport(){
+  try { await Promise.all(['900 80px "S16 Serif"', '900 60px Archivo', '800 24px Archivo'].map(f => document.fonts.load(f, '整届预测战报 S16 0123'))); } catch (e) {}
+  const D = seasonData(), cs = getComputedStyle(document.documentElement), V = n => cs.getPropertyValue(n).trim();
+  const ink = V('--ink'), mute = V('--mute'), rule = V('--rule'), paper2 = V('--paper-2'), paper3 = V('--paper-3'), night = V('--night'), acc = V('--accent'), acc2 = V('--accent-2'), win = V('--win'), crestBg = V('--crest');
+  const body = V('--f-body'), num = 'Archivo, ' + body, head = V('--f-head');
+  const rows = D.per.length, stripRows = D.rounds.length, ups = Math.max(1, D.upsets.length);
+  const W = 1080, HEAD = 330, SUM = 250, STATS = 190, SEC = 86, RROW = 74, SROW = 70, UROW = 104, FOOT = 210;
+  const H = HEAD + SUM + STATS + SEC + rows * RROW + SEC + stripRows * SROW + SEC + ups * UROW + 30 + FOOT;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d'), narrow = on => { if ('fontStretch' in c) c.fontStretch = on ? 'condensed' : 'normal'; };
+  const ids = [...new Set(D.upsets.flatMap(u => [u.w, u.l]).concat(D.fav ? [D.fav[0]] : []))], logos = {};
+  await Promise.all(ids.map(async id => { logos[id] = LOGO[id] ? await loadImg(LOGO[id]) : null; }));
+  const crestAt = (id, x, y, s) => { c.fillStyle = crestBg; rrect(c, x, y, s, s, s * .22); c.fill(); if (logos[id]) c.drawImage(logos[id], x + s * .12, y + s * .12, s * .76, s * .76); };
+  const pctOf = (h, d) => d ? Math.round(h / d * 100) + '%' : '–';
+  c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+  // header
+  c.fillStyle = night; c.fillRect(0, 0, W, HEAD);
+  const g = c.createLinearGradient(0, 0, 0, HEAD); g.addColorStop(0, acc2); g.addColorStop(1, acc);
+  c.fillStyle = g; c.beginPath(); c.moveTo(W - 210, 0); c.lineTo(W, 0); c.lineTo(W, HEAD); c.lineTo(W - 296, HEAD); c.closePath(); c.fill();
+  c.fillStyle = acc; c.beginPath(); c.moveTo(W - 246, 0); c.lineTo(W - 228, 0); c.lineTo(W - 314, HEAD); c.lineTo(W - 332, HEAD); c.closePath(); c.fill();
+  c.fillStyle = '#ff6b81'; c.font = `800 24px ${num}`; if ('letterSpacing' in c) c.letterSpacing = '5px';
+  c.fillText("S16 · PICK'EM 整届预测战报", 64, 94); if ('letterSpacing' in c) c.letterSpacing = '0px';
+  c.fillStyle = '#fff'; c.font = `900 86px ${head}`; c.fillText(D.finished ? '全程预测总战报' : '整届预测战报', 64, 200);
+  c.fillStyle = 'rgba(255,255,255,.62)'; c.font = `400 26px ${body}`;
+  c.fillText(D.finished ? '2026 英雄联盟全球总决赛 · 全部轮次' : `2026 英雄联盟全球总决赛 · 截至 ${fCN(Date.now())}`, 64, 256);
+  // headline numbers
+  let y = HEAD; narrow(true);
+  c.fillStyle = ink; c.font = `900 150px ${num}`; c.fillText(String(D.hits.length), 64, y + 172);
+  const hw = c.measureText(String(D.hits.length)).width; c.fillStyle = mute; c.font = `900 70px ${num}`; c.fillText('/' + D.decided.length, 64 + hw + 8, y + 172);
+  c.textAlign = 'right'; c.fillStyle = acc; c.font = `900 150px ${num}`; c.fillText(pctOf(D.hits.length, D.decided.length), W - 64, y + 172);
+  narrow(false); c.font = `400 24px ${body}`; c.fillStyle = mute; c.fillText('总准确率', W - 64, y + 212);
+  c.textAlign = 'left'; c.fillText('命中 / 已出结果的预测', 64, y + 212);
+  c.fillStyle = ink; c.fillRect(64, y + SUM - 4, W - 128, 4);
+  // four stat cells
+  y += SUM; const cw = (W - 128) / 4;
+  const stat = (i, big, label, id, unit) => {
+    const x = 64 + i * cw; if (i) { c.fillStyle = rule; c.fillRect(x, y + 34, 1, STATS - 68); }
+    const tx = x + (i ? 24 : 0);
+    if (id) { crestAt(id, tx, y + 44, 64); c.fillStyle = ink; narrow(true); c.font = `900 52px ${num}`; c.fillText(big, tx + 76, y + 96); narrow(false); }
+    else {
+      c.fillStyle = ink; narrow(true); c.font = `900 64px ${num}`; c.fillText(big, tx, y + 104);
+      const bw = c.measureText(big).width; narrow(false);
+      if (unit) { c.font = `700 24px ${body}`; c.fillText(unit, tx + bw + 6, y + 104); }
+    }
+    c.fillStyle = mute; c.font = `400 22px ${body}`; c.fillText(label, tx, y + 146);
+  };
+  stat(0, String(D.picked.length), '预测场次');
+  stat(1, String(D.best), '最长连中');
+  const lh = D.lead / 3600e3, lead = !D.picked.length ? ['–', ''] : lh >= 48 ? [String(Math.round(lh / 24)), '天'] : lh >= 1 ? [lh < 10 ? lh.toFixed(1).replace(/\.0$/, '') : String(Math.round(lh)), '小时'] : [String(Math.max(1, Math.round(D.lead / 60000))), '分钟'];
+  stat(2, lead[0], '平均提前预测', null, lead[1]);
+  if (D.fav) stat(3, '×' + D.fav[1], `最懂 ${D.fav[0]}`, D.fav[0]); else stat(3, '–', '最懂的队伍');
+  c.fillStyle = ink; c.fillRect(64, y + STATS - 2, W - 128, 2);
+  const section = (yy, t, sub) => { c.fillStyle = ink; c.font = `900 34px ${head}`; c.fillText(t, 64, yy + 56); if (sub) { c.textAlign = 'right'; c.fillStyle = mute; c.font = `400 20px ${body}`; c.fillText(sub, W - 64, yy + 56); c.textAlign = 'left'; } };
+  // accuracy per round
+  y += STATS; section(y, '每轮准确率', '命中 / 已出结果'); y += SEC;
+  D.per.forEach(({rd, st}, i) => {
+    const yy = y + i * RROW, p = st.decided ? st.hit / st.decided : 0;
+    c.fillStyle = ink; c.font = `700 24px ${body}`; c.fillText(rd.name, 64, yy + 42);
+    c.fillStyle = paper3; c.fillRect(300, yy + 26, 520, 16);
+    c.fillStyle = st.decided ? (p >= .5 ? acc : ink) : paper3; c.fillRect(300, yy + 26, 520 * p, 16);
+    narrow(true); c.textAlign = 'right'; c.fillStyle = ink; c.font = `900 34px ${num}`; c.fillText(st.decided ? pctOf(st.hit, st.decided) : '待定', W - 64, yy + 46);
+    narrow(false); c.fillStyle = mute; c.font = `400 19px ${body}`; c.fillText(`${st.hit}/${st.decided}`, W - 170, yy + 44); c.textAlign = 'left';
+  });
+  // every match as a square
+  y += rows * RROW; section(y, '全部比赛一览', '■ 命中  ■ 未中  □ 未预测'); y += SEC;
+  D.rounds.forEach((rd, i) => {
+    const yy = y + i * SROW; c.fillStyle = mute; c.font = `400 20px ${body}`; c.fillText(rd.name, 64, yy + 38);
+    rd.ms.forEach((m, j) => {
+      const x = 300 + j * 50, k = S.pk[m.id];
+      rrect(c, x, yy + 10, 38, 38, 7);
+      if (k && m.res) { c.fillStyle = k.w === m.res.w ? win : '#b9b9be'; c.fill(); }
+      else { c.lineWidth = 2; c.strokeStyle = k ? acc : rule; c.stroke(); }
+    });
+  });
+  // upsets called correctly
+  y += stripRows * SROW; section(y, '冷门命中', '押中参考实力更弱的一方'); y += SEC;
+  if (!D.upsets.length) { c.fillStyle = mute; c.font = `400 22px ${body}`; c.fillText('暂时没有冷门命中。', 64, y + 50); }
+  D.upsets.forEach((u, i) => {
+    const yy = y + i * UROW;
+    if (i % 2) { c.fillStyle = paper2; c.fillRect(0, yy, W, UROW); }
+    crestAt(u.w, 64, yy + 18, 64); narrow(true); c.fillStyle = acc; c.font = `900 46px ${num}`; c.fillText(u.w, 144, yy + 66);
+    const ww = c.measureText(u.w).width; c.fillStyle = mute; c.font = `900 30px ${num}`; c.fillText('胜', 156 + ww, yy + 64);
+    c.fillStyle = ink; c.font = `900 46px ${num}`; c.fillText(u.l, 204 + ww, yy + 66); narrow(false);
+    c.textAlign = 'right'; c.fillStyle = mute; c.font = `400 20px ${body}`;
+    c.fillText(`${u.m.rd.name} · ${scoreAB(u.m)} · 预测于 ${fStamp(S.pk[u.m.id].t)}`, W - 64, yy + 62); c.textAlign = 'left';
+  });
+  // footer
+  y += ups * UROW + 30;
+  c.fillStyle = night; c.fillRect(0, y, W, FOOT);
+  c.fillStyle = '#fff'; c.font = `900 40px ${num}`; if ('fontStretch' in c) c.fontStretch = 'expanded'; c.fillText('S16', 64, y + 76); narrow(false);
+  c.fillStyle = 'rgba(255,255,255,.62)'; c.font = `400 21px ${body}`;
+  c.fillText('只统计单轮预测：每场在开赛前提交，开赛即锁定；预测时间由浏览器记录，并在提交时核对官方数据。', 64, y + 122);
+  c.fillText(`生成于 ${fStamp(Date.now())}（${tzLabel()}） · stayintack.github.io/code/self-made-website/lol-s16-website`, 64, y + 158);
+  return cv.toDataURL('image/png');
+}
+async function openSeasonReport(){
+  const title = MATCHES.some(m => m.st === 'f' && m.res) ? '全程预测总战报' : '整届预测战报';
+  $('report-t').textContent = title;
+  $('report-body').innerHTML = '<p class="sub">正在生成…</p>'; openModal('report');
+  const url = await drawSeasonReport();
+  $('report-body').innerHTML = `<img src="${url}" alt="${title}"><div class="row"><a class="btn red" href="${url}" download="S16-${title}.png">保存图片</a></div>`;
+}
+
 /* ---------- live links / share ---------- */
 function renderLive(){
   const all = LIVE.concat(S.links.map((l, i) => ({name:l.name, short:l.name.slice(0, 1), color:'#3a3a44', note:l.url.replace(/^https?:\/\//, ''), url:l.url, own:i})));
@@ -1635,6 +1753,7 @@ document.addEventListener('click', e => {
   const t = e.target;
   if (t.closest('[data-pk-hint]')) { toast('点击比赛卡片里你认为会赢的队伍'); return; }
   const pk = t.closest('[data-pk]'); if (pk) { pkPick(pk.dataset.pk, pk.dataset.team); return; }
+  if (t.closest('[data-season]')) { openSeasonReport(); return; }
   const rp = t.closest('[data-report]'); if (rp) { openReport(rp.dataset.report, rp.dataset.mode); return; }
   const el = t.closest('[data-key][data-team]'); if (el) { pick(el.dataset.key, el.dataset.team, +el.dataset.bo); return; }
   const cy = t.closest('[data-cycle]'); if (cy) { const p = S.picks[cy.dataset.cycle]; if (p) setScore(cy.dataset.cycle, p.s === '2-0' ? '2-1' : '2-0'); return; }

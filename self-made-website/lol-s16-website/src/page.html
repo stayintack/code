@@ -540,7 +540,7 @@ button.pk-t:hover:not(:disabled){border-color:var(--ink)}
     <div class="tools">
       <button class="btn ghost" id="open-teams" title="关注战队"><span class="stack" id="follow-stack"></span><span class="star-ic" aria-hidden="true">★</span><span class="lbl-f">关注</span></button>
       <label class="switch" title="推演整届比赛：给所有未开赛的比赛选胜者，不记录时间"><input type="checkbox" id="pred"><i></i><span>全程模拟预测</span></label>
-      <button class="btn" id="btn-sim" hidden title="按各队参考实力随机模拟所有未开赛比赛，再点一次换一组结果"><span class="wide">一键AI自动模拟预测</span><span class="narrow">AI模拟</span></button>
+      <button class="btn" id="btn-sim" hidden title="按各队参考实力随机模拟所有未开赛比赛，再点一次换一组结果"><span class="wide">一键智能模拟预测</span><span class="narrow">智能模拟</span></button>
       <button class="btn ghost" id="open-share" hidden>分享</button>
       <button class="btn solid" id="open-live">▶ 直播</button>
     </div>
@@ -953,7 +953,7 @@ function nextMatch(){ const now = Date.now(); return MATCHES.find(m => m.live) |
 function predTip(open, closedMsg){
   if (!open) return '';
   return S.pred
-    ? '<div class="tip acc"><b>全程模拟预测已开启</b>点击未开赛比赛中的队伍选出胜者，再点一次取消。顶部「一键AI自动模拟预测」可以一键补完，每点一次换一组结果。</div>'
+    ? '<div class="tip acc"><b>全程模拟预测已开启</b>点击未开赛比赛中的队伍选出胜者，再点一次取消。顶部「一键智能模拟预测」可以一键补完，每点一次换一组结果。</div>'
     : `<div class="tip">${closedMsg} 想推演后面的走势？打开右上角的<b>全程模拟预测</b>。想记录时间、和朋友比准确率，去<b>单轮预测</b>页。</div>`;
 }
 
@@ -1530,7 +1530,7 @@ function renderPoster(M){
   if (ko.champ) {
     h += `<div class="champ">${crest(ko.champ)}<span class="tt">${ko.champ}</span><small>冠军 · 决赛 ${scoreAB(ko.f)} 击败 ${ko.runnerUp}</small></div>`;
     h += `<div class="prow"><small>四强</small>${logos(ko.sf.flatMap(m => [m.a, m.b]))}</div>`;
-  } else h += '<p style="margin:18px auto 4px;color:var(--night-mute);font-size:13px">还没模拟到冠军。在各阶段点选未开赛比赛的胜者，或点「一键AI自动模拟预测」。</p>';
+  } else h += '<p style="margin:18px auto 4px;color:var(--night-mute);font-size:13px">还没模拟到冠军。在各阶段点选未开赛比赛的胜者，或点「一键智能模拟预测」。</p>';
   if (adv.length) h += `<div class="prow"><small>瑞士轮晋级</small>${logos(adv, id => rec[id].w + '-' + rec[id].l)}</div>`;
   if (pi.champ) h += `<div class="prow"><small>入围赛冠军</small>${logos([pi.champ])}</div>`;
   $('poster').innerHTML = h;

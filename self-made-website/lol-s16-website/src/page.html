@@ -108,6 +108,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
   .tools{gap:6px}
 }
 .star-ic{display:none;color:var(--accent);font-size:15px;line-height:1}
+.narrow{display:none}
+@media (max-width:600px){.narrow{display:inline}}
 @media (max-width:600px){.tabs button{padding:0 9px;font-size:14.5px}.tabs button[aria-selected="true"]::after{left:9px;right:9px}.tabs .cnt{margin-left:4px}}
 @media (max-width:600px){.wide{display:none}.tools .btn{padding:6px 10px}.brand span{display:none}.stack,.lbl-f{display:none}.star-ic{display:inline}.switch{gap:6px;font-size:12.5px}.switch i{width:32px;height:19px}.switch i::after{width:13px;height:13px}.switch input:checked + i::after{transform:translateX(13px)}}
 
@@ -532,13 +534,13 @@ button.pk-t:hover:not(:disabled){border-color:var(--ink)}
       <button role="tab" data-tab="pi">入围赛</button>
       <button role="tab" data-tab="swiss">瑞士轮</button>
       <button role="tab" data-tab="ko">淘汰赛</button>
-      <button role="tab" data-tab="pk" id="tab-pk">竞猜</button>
+      <button role="tab" data-tab="pk" id="tab-pk">单轮预测</button>
       <button role="tab" data-tab="schedule">赛程</button>
     </nav>
     <div class="tools">
       <button class="btn ghost" id="open-teams" title="关注战队"><span class="stack" id="follow-stack"></span><span class="star-ic" aria-hidden="true">★</span><span class="lbl-f">关注</span></button>
-      <label class="switch" title="为未开赛的比赛做预测"><input type="checkbox" id="pred"><i></i><span>预测</span></label>
-      <button class="btn" id="btn-sim" hidden title="按参考实力随机模拟所有未开赛比赛，再点一次换一组结果"><span class="wide">按实力</span>模拟</button>
+      <label class="switch" title="推演整届比赛：给所有未开赛的比赛选胜者，不记录时间"><input type="checkbox" id="pred"><i></i><span>全程模拟预测</span></label>
+      <button class="btn" id="btn-sim" hidden title="按各队参考实力随机模拟所有未开赛比赛，再点一次换一组结果"><span class="wide">一键AI自动模拟预测</span><span class="narrow">AI模拟</span></button>
       <button class="btn ghost" id="open-share" hidden>分享</button>
       <button class="btn solid" id="open-live">▶ 直播</button>
     </div>
@@ -554,7 +556,7 @@ button.pk-t:hover:not(:disabled){border-color:var(--ink)}
     <div class="sec-h"><div><span class="kicker">Stage 01 · Play-In</span><h2>入围赛</h2></div>
       <p class="dek">四支队伍双败淘汰，全部 BO5。冠军以第四档身份进入瑞士轮，其余三队结束本届征程。</p><div class="ctrl"></div></div>
     <div id="pi-tip"></div>
-    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span><span class="hint">点击比赛查看详情</span></div>
+    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的模拟</span><span class="hint">点击比赛查看详情</span></div>
     <p class="swipe">← 左右滑动查看完整对阵 →</p><div class="scroll-x"><div class="pi" id="pi"></div></div>
   </section>
 
@@ -563,7 +565,7 @@ button.pk-t:hover:not(:disabled){border-color:var(--ink)}
       <p class="dek">16 支队伍，三胜晋级、三败淘汰。每轮同战绩队伍抽签对阵；晋级赛和淘汰赛打 BO3，其余 BO1。</p><div class="ctrl" id="sw-ctrl"></div></div>
     <div id="pots"></div>
     <div id="sw-tip"></div>
-    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的预测</span><span class="hint">悬停队伍看晋级路线 · 点击比赛查看详情</span></div>
+    <div class="legend"><span class="w"><i></i>胜者去向</span><span class="l"><i></i>败者去向</span><span class="p"><i></i>我的模拟</span><span class="hint">悬停队伍看晋级路线 · 点击比赛查看详情</span></div>
     <p class="swipe">← 左右滑动查看完整流程 →</p><div class="scroll-x"><div class="flow" id="flow"></div></div>
     <div class="sub-h"><div><h3>积分与晋级形势</h3><p id="prob-note"></p></div></div>
     <div class="table-scroll"><table id="stand"></table></div>
@@ -577,8 +579,8 @@ button.pk-t:hover:not(:disabled){border-color:var(--ink)}
   </section>
 
   <section class="panel" id="p-pk" role="tabpanel" hidden>
-    <div class="sec-h"><div><span class="kicker">Pick'em · 单轮竞猜</span><h2>竞猜</h2></div>
-      <p class="dek">每轮官方抽签后开放。比赛开始前可以随时选、随时改，开赛即锁定。一轮全部打完后，可以生成你的准确率战报图，图上带每场的预测时间。</p><div class="ctrl"></div></div>
+    <div class="sec-h"><div><span class="kicker">Pick'em · Round by round</span><h2>单轮预测</h2></div>
+      <p class="dek">每轮官方抽签后开放，开赛前可以随时选、随时改，开赛即锁定，每次选择都会记录时间。选好后点「确认预测」立即生成赛前预测单；这一轮打完，再生成带准确率的战报。</p><div class="ctrl"></div></div>
     <div id="pk"></div>
   </section>
 
@@ -617,7 +619,7 @@ button.pk-t:hover:not(:disabled){border-color:var(--ink)}
 
 <div class="modal" id="report" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="report-t">
-    <div class="sheet-h"><h2 id="report-t">竞猜战报</h2><button data-close aria-label="关闭">×</button></div>
+    <div class="sheet-h"><h2 id="report-t">单轮预测战报</h2><button data-close aria-label="关闭">×</button></div>
     <p class="sub">手机上长按图片即可保存，电脑上点下方按钮下载。</p>
     <div id="report-body"></div>
   </div>
@@ -625,12 +627,12 @@ button.pk-t:hover:not(:disabled){border-color:var(--ink)}
 
 <div class="modal" id="share" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="share-t">
-    <div class="sheet-h"><h2 id="share-t">我的预测</h2><button data-close aria-label="关闭">×</button></div>
+    <div class="sheet-h"><h2 id="share-t">我的全程模拟预测</h2><button data-close aria-label="关闭">×</button></div>
     <div class="poster" id="poster"></div>
     <div class="row">
       <button class="btn solid" id="btn-copytext">复制文字版</button>
       <button class="btn" id="btn-copycode">复制预测码</button>
-      <button class="btn ghost" id="btn-clear">清空预测</button>
+      <button class="btn ghost" id="btn-clear">清空全程模拟</button>
     </div>
     <details>
       <summary>导入朋友的预测码</summary>
@@ -728,7 +730,7 @@ async function refreshLive(){
 
 /* ---------- state ---------- */
 const KEY = 's16-watch-v2';
-let S = {picks:{}, pred:false, drawSeed:20261018, qfSeed:1114, tz:'Asia/Shanghai', links:[], follow:[], onlyFollow:false, pk:{}};
+let S = {picks:{}, pred:false, drawSeed:20261018, qfSeed:1114, tz:'Asia/Shanghai', links:[], follow:[], onlyFollow:false, pk:{}, pkConf:{}};
 try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -843,12 +845,13 @@ function runSwiss(ids, byR, getResult, mkR1, pairRng){
       return {key, a, b, bo, group: ra.w + '-' + ra.l, res, o, official: !!(o && o.res), live: !!(o && o.live), t: o ? o.t : null, sim: !o};
     });
     rounds.push({r, matches});
-    if (matches.some(m => !m.res)) { complete = false; break; }
     matches.forEach(m => {
+      if (!m.res) return;
       const w = m.res.w, l = w === m.a ? m.b : m.a;
       rec[w].w++; rec[l].l++; rec[w].h.push('W'); rec[l].h.push('L');
       opp[m.a].add(m.b); opp[m.b].add(m.a);
     });
+    if (matches.some(m => !m.res)) { complete = false; break; }
   }
   return {rounds, rec, complete, awaitingDraw};
 }
@@ -950,8 +953,8 @@ function nextMatch(){ const now = Date.now(); return MATCHES.find(m => m.live) |
 function predTip(open, closedMsg){
   if (!open) return '';
   return S.pred
-    ? '<div class="tip acc"><b>预测已开启</b>点击未开赛比赛中的队伍选出胜者，再点一次取消。顶部「按实力模拟」可以一键补完，每点一次换一组结果。</div>'
-    : `<div class="tip">${closedMsg} 想猜结果？打开右上角的<b>预测</b>开关。</div>`;
+    ? '<div class="tip acc"><b>全程模拟预测已开启</b>点击未开赛比赛中的队伍选出胜者，再点一次取消。顶部「一键AI自动模拟预测」可以一键补完，每点一次换一组结果。</div>'
+    : `<div class="tip">${closedMsg} 想推演后面的走势？打开右上角的<b>全程模拟预测</b>。想记录时间、和朋友比准确率，去<b>单轮预测</b>页。</div>`;
 }
 
 function roomRows(){
@@ -968,7 +971,7 @@ function kcard(m, label, node, seed){
   let st = '';
   if (m.official) st = '<span class="st">已结束</span>';
   else if (m.live) st = '<span class="st live">LIVE</span>';
-  else if (pred) st = '<span class="st pd">我的预测</span>';
+  else if (pred) st = '<span class="st pd">我的模拟</span>';
   else if (m.t) st = `<span class="st">${fCN(m.t)} ${fWk(m.t)} ${fTime(m.t)}</span>`;
   if (can && openable) st += ` <button class="more" data-detail="${oid}">详情</button>`;
   const row = id => {
@@ -1063,7 +1066,7 @@ function renderPI(M){
   const card = n => kcard(N[n], PI_LABEL[n], n);
   const champ = M.pi.champ;
   const goal = champ
-    ? `<div class="goal ${M.pi.champOfficial ? '' : 'pd'}" data-node="goal">${crest(champ, 'bare')}<span class="tt">${champ}</span><small>${M.pi.champOfficial ? '晋级瑞士轮 · 第四档' : '我的预测 · 晋级瑞士轮'}</small></div>`
+    ? `<div class="goal ${M.pi.champOfficial ? '' : 'pd'}" data-node="goal">${crest(champ, 'bare')}<span class="tt">${champ}</span><small>${M.pi.champOfficial ? '晋级瑞士轮 · 第四档' : '模拟结果 · 晋级瑞士轮'}</small></div>`
     : `<div class="goal ph" data-node="goal">${crest(null)}<span class="tt">待定</span><small>冠军晋级瑞士轮</small></div>`;
   $('pi').innerHTML = '<svg class="edges" aria-hidden="true"></svg>' +
     cell(1, 1, card('ub1') + card('ub2')) + cell(2, 1, card('ubf')) + cell(2, 2, card('lb1')) + cell(3, 2, card('lbf')) +
@@ -1182,7 +1185,7 @@ function renderStand(M){
       <td style="text-align:right"><span class="pct champ">${pct(x.s && x.s.champ)}</span></td>
       <td style="width:40px">${x.id === 'PIW' ? '' : `<button class="star" data-follow="${x.id}" aria-pressed="${isF(x.id)}" aria-label="关注 ${x.id}">★</button>`}</td></tr>`; }).join('') + '</tbody>';
   const usesPred = S.pred && Object.keys(S.picks).length;
-  $('prob-note').textContent = '战绩只计真实赛果。概率按真实赛果' + (usesPred ? '和你的预测' : '') + '，用参考实力把剩余比赛模拟 2000 次得出，仅供参考。点 ★ 关注战队。';
+  $('prob-note').textContent = '战绩只计真实赛果。概率按真实赛果' + (usesPred ? '和你的全程模拟预测' : '') + '，用参考实力把剩余比赛模拟 2000 次得出，仅供参考。点 ★ 关注战队。';
 }
 
 /* ---------- knockouts ---------- */
@@ -1190,14 +1193,14 @@ function renderKO(M){
   const k = M.ko, seed = {};
   M.ids.forEach(id => { const r = M.sw.rec[id]; if (r.w === 3) seed[id] = '3-' + r.l; });
   const goal = k.champ
-    ? `<div class="goal ${k.f.official ? '' : 'pd'}" data-node="goal">${crest(k.champ, 'bare')}<span class="tt">${k.champ}</span><small>${esc(nameOf(k.champ))}</small><small>${k.f.official ? 'S16 世界冠军' : '我的预测冠军'}</small></div>`
+    ? `<div class="goal ${k.f.official ? '' : 'pd'}" data-node="goal">${crest(k.champ, 'bare')}<span class="tt">${k.champ}</span><small>${esc(nameOf(k.champ))}</small><small>${k.f.official ? 'S16 世界冠军' : '模拟冠军'}</small></div>`
     : `<div class="goal ph" data-node="goal">${crest(null)}<span class="tt">冠军</span><small>11 月 15 日揭晓（北京时间）</small></div>`;
   $('bracket').innerHTML = '<svg class="edges" aria-hidden="true"></svg>' +
     `<div class="kcol">${k.qf.map((m, i) => kcard(m, '八强 ' + (i + 1), 'qf' + i, seed)).join('')}</div>` +
     `<div class="kcol">${k.sf.map((m, i) => kcard(m, '半决赛 ' + (i + 1), 'sf' + i, seed)).join('')}</div>` +
     `<div class="kcol">${kcard(k.f, '总决赛 · 纽约', 'f0', seed)}</div><div class="kcol">${goal}</div>`;
   const anyOpen = k.ready && [...k.qf, ...k.sf, k.f].some(m => m.key && !m.official);
-  $('ko-tip').innerHTML = !k.ready ? `<div class="tip">八强对阵要等瑞士轮结束后（10 月 31 日）抽签产生。${S.pred ? '把瑞士轮全部预测完，这里会按规则模拟八强抽签。' : '打开右上角<b>预测</b>开关，可以先把瑞士轮猜完。'}</div>`
+  $('ko-tip').innerHTML = !k.ready ? `<div class="tip">八强对阵要等瑞士轮结束后（10 月 31 日）抽签产生。${S.pred ? '把瑞士轮全部预测完，这里会按规则模拟八强抽签。' : '打开右上角的<b>全程模拟预测</b>，可以先把瑞士轮推演完。'}</div>`
     : k.qfSim ? '<div class="tip acc"><b>模拟对阵</b>八强官方抽签还没出，当前对阵是按你的瑞士轮预测模拟抽出来的。</div>' : predTip(anyOpen, '');
   $('ko-ctrl').innerHTML = k.qfSim ? '<button class="btn" id="btn-qf">重新模拟抽签</button>' : '';
   drawKO();
@@ -1377,13 +1380,13 @@ function pkCard(m){
   if (m.res) st = !k ? '<span>未参与</span>' : k.w === w ? '<span class="hit">✓ 命中</span>' : '<span class="miss">✗ 未中</span>';
   else if (m.live || m.state === 'inProgress') st = '<span class="live">LIVE · 已锁定</span>';
   else if (lock) st = '<span>已锁定</span>';
-  else st = `<span class="open">可竞猜 · 还剩 ${dur(m.t - Date.now())}</span>`;
+  else st = `<span class="open">可预测 · 还剩 ${dur(m.t - Date.now())}</span>`;
   const team = (id, side) => {
     const cls = (k && k.w === id ? ' sel' : '') + (w && w !== id ? ' lose' : '');
     return `<button class="pk-t ${side}${cls}" data-pk="${m.id}" data-team="${id}" ${lock ? 'disabled' : ''} aria-pressed="${!!(k && k.w === id)}">${crest(id)}<span class="nm">${short(id)}${seedTag(id)}</span></button>`;
   };
   const mid = m.res ? `<span class="pk-vs sc">${scoreAB(m)}</span>` : m.live ? `<span class="pk-vs live">${m.ga}:${m.gb}</span>` : '<span class="pk-vs">VS</span>';
-  const foot = k ? `我选 <b>${k.w}</b> · 预测于 ${fStamp(k.t)} · 开赛前 ${dur(m.t - k.t)}` : lock ? '没有参与这场竞猜' : '点击你认为会赢的队伍';
+  const foot = k ? `我选 <b>${k.w}</b> · 预测于 ${fStamp(k.t)} · 开赛前 ${dur(m.t - k.t)}` : lock ? '没有预测这场' : '点击你认为会赢的队伍';
   return `<div class="pk-card ${m.res && k ? (k.w === w ? 'hit' : 'miss') : ''}"><div class="pk-meta"><span>${fCN(m.t)} ${fWk(m.t)} ${fTime(m.t)} · BO${m.bo}</span>${st}</div><div class="pk-teams">${team(m.a, 'a')}${mid}${team(m.b, 'b')}</div><div class="pk-foot">${foot}</div></div>`;
 }
 function renderPK(){
@@ -1391,28 +1394,31 @@ function renderPK(){
   const rounds = pkRounds();
   const open = rounds.flatMap(rd => rd.ms).filter(m => !pkLocked(m) && !S.pk[m.id]).length;
   const tab = $('tab-pk'); tab.querySelectorAll('.cnt').forEach(n => n.remove());
-  if (open) tab.insertAdjacentHTML('beforeend', `<span class="cnt" title="还有 ${open} 场可以竞猜">${open}</span>`);
+  if (open) tab.insertAdjacentHTML('beforeend', `<span class="cnt" title="还有 ${open} 场可以预测">${open}</span>`);
   const all = pkStat(rounds.flatMap(rd => rd.ms));
-  const sum = `<div class="pk-sum"><div><b>${all.hit}<span style="color:var(--faint)">/${all.decided}</span></b><small>命中 / 已出结果</small></div><div><b class="acc">${all.decided ? Math.round(all.hit / all.decided * 100) + '%' : '–'}</b><small>总准确率</small></div><div><b>${all.picked}</b><small>已竞猜场次</small></div><div><b>${open}</b><small>现在可以竞猜</small></div></div>
-    <p class="pk-note">预测时间由你的浏览器记录。每次提交前会先核对 LoL Esports 官方数据，确认比赛还没开始，核对过的预测在战报上会注明。记录只保存在这台设备的浏览器里，换设备或清除浏览器数据会丢失。</p>`;
+  const sum = `<div class="pk-sum"><div><b>${all.hit}<span style="color:var(--faint)">/${all.decided}</span></b><small>命中 / 已出结果</small></div><div><b class="acc">${all.decided ? Math.round(all.hit / all.decided * 100) + '%' : '–'}</b><small>总准确率</small></div><div><b>${all.picked}</b><small>已预测场次</small></div><div><b>${open}</b><small>现在可以预测</small></div></div>
+    <p class="pk-note">预测时间由你的浏览器记录。每次提交前会先核对 LoL Esports 官方数据，确认比赛还没开始，核对过的预测在预测单和战报上会注明。记录只保存在这台设备的浏览器里，换设备或清除浏览器数据会丢失。</p>`;
   const swR = Object.keys(MODEL.byR).length, swOver = MATCHES.filter(m => m.st === 'swiss').every(m => m.res);
   let next = '';
-  if (swR < 5 && !swOver) next = `<section class="pk-round"><div class="pk-h"><div><span class="kicker">Swiss · Round ${swR + 1}</span><h3>瑞士轮 第${swR + 1}轮</h3></div></div><div class="pk-next">上一轮打完后官方抽签，对阵公布后这里自动开放竞猜。</div></section>`;
-  else if (swOver && !KO_OFF.qf.some(m => m.a && m.b)) next = `<section class="pk-round"><div class="pk-h"><div><span class="kicker">Quarterfinals</span><h3>八强赛</h3></div></div><div class="pk-next">瑞士轮结束后官方抽签，对阵公布后这里自动开放竞猜。</div></section>`;
+  if (swR < 5 && !swOver) next = `<section class="pk-round"><div class="pk-h"><div><span class="kicker">Swiss · Round ${swR + 1}</span><h3>瑞士轮 第${swR + 1}轮</h3></div></div><div class="pk-next">上一轮打完后官方抽签，对阵公布后这里自动开放预测。</div></section>`;
+  else if (swOver && !KO_OFF.qf.some(m => m.a && m.b)) next = `<section class="pk-round"><div class="pk-h"><div><span class="kicker">Quarterfinals</span><h3>八强赛</h3></div></div><div class="pk-next">瑞士轮结束后官方抽签，对阵公布后这里自动开放预测。</div></section>`;
   const order = rounds.slice().sort((x, y) => (pkDone(x) - pkDone(y)) || (pkDone(x) ? rounds.indexOf(y) - rounds.indexOf(x) : rounds.indexOf(x) - rounds.indexOf(y)));
   const blocks = order.map(rd => {
     const st = pkStat(rd.ms), done = pkDone(rd);
-    const act = done ? (st.picked ? `<button class="btn red" data-report="${rd.id}">生成战报图</button>` : '<span class="wait">这一轮没有参与竞猜</span>') : `<span class="wait">本轮结束后可生成战报图</span>`;
-    return `<section class="pk-round"><div class="pk-h"><div><span class="kicker">${rd.kicker}</span><h3>${rd.name}</h3><p>${rd.ms.length} 场 · 已竞猜 ${st.picked} 场 · 命中 ${st.hit}/${st.decided}${done && st.decided ? ' · 准确率 ' + Math.round(st.hit / st.decided * 100) + '%' : ''}</p></div><div class="ctrl">${act}</div></div><div class="pk-grid">${rd.ms.map(pkCard).join('')}</div></section>`;
+    const canPre = rd.ms.some(m => !pkLocked(m)) && st.picked;
+    const act = done ? (st.picked ? `<button class="btn red" data-report="${rd.id}" data-mode="full">生成准确率战报</button>` : '<span class="wait">这一轮没有预测</span>')
+      : canPre ? `<button class="btn red" data-report="${rd.id}" data-mode="pre">确认预测 · 生成赛前预测单</button>` : `<span class="wait">${st.picked ? '本轮结束后可生成准确率战报' : '选好后可以确认并生成赛前预测单'}</span>`;
+    const conf = S.pkConf[rd.id] ? ` · 已于 ${fStamp(S.pkConf[rd.id])} 确认` : '';
+    return `<section class="pk-round"><div class="pk-h"><div><span class="kicker">${rd.kicker}</span><h3>${rd.name}</h3><p>${rd.ms.length} 场 · 已预测 ${st.picked} 场 · 命中 ${st.hit}/${st.decided}${done && st.decided ? ' · 准确率 ' + Math.round(st.hit / st.decided * 100) + '%' : ''}${conf}</p></div><div class="ctrl">${act}</div></div><div class="pk-grid">${rd.ms.map(pkCard).join('')}</div></section>`;
   });
   const openBlocks = order.filter(rd => !pkDone(rd)).length;
-  $('pk').innerHTML = sum + (rounds.length ? blocks.slice(0, openBlocks).join('') + next + blocks.slice(openBlocks).join('') : next || '<div class="pk-next">官方抽签后开放竞猜。</div>');
+  $('pk').innerHTML = sum + (rounds.length ? blocks.slice(0, openBlocks).join('') + next + blocks.slice(openBlocks).join('') : next || '<div class="pk-next">官方抽签后开放预测。</div>');
 }
 async function pkPick(id, team){
   if (LIVE_DATA && Date.now() - DATA_AT > 90e3) { try { ingest(await fetchSchedule()); DATA_AT = Date.now(); renderAll(); } catch (e) {} }
   const m = MATCHES.find(x => x.id === id);
-  if (!m || pkLocked(m)) { toast('这场已经开赛，竞猜已锁定'); renderPK(); return; }
-  if (S.pk[id] && S.pk[id].w === team) { delete S.pk[id]; toast('已取消这场的竞猜'); }
+  if (!m || pkLocked(m)) { toast('这场已经开赛，预测已锁定'); renderPK(); return; }
+  if (S.pk[id] && S.pk[id].w === team) { delete S.pk[id]; toast('已取消这场的预测'); }
   else { S.pk[id] = {w: team, t: Date.now(), v: LIVE_DATA}; toast(`已选 ${team}，开赛前都可以改`); }
   save(); renderPK();
 }
@@ -1420,8 +1426,9 @@ async function pkPick(id, team){
 /* ---------- report image ---------- */
 const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
 function rrect(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
-async function drawReport(rd){
-  try { await Promise.all(['900 80px "S16 Serif"', '900 60px Archivo', '800 24px Archivo'].map(f => document.fonts.load(f, '竞猜战报瑞士轮 S16 0123'))); } catch (e) {}
+async function drawReport(rd, mode = 'full'){
+  const pre = mode === 'pre', left = rd.ms.filter(m => !pkLocked(m)).length;
+  try { await Promise.all(['900 80px "S16 Serif"', '900 60px Archivo', '800 24px Archivo'].map(f => document.fonts.load(f, '单轮预测战报瑞士轮 S16 0123'))); } catch (e) {}
   const cs = getComputedStyle(document.documentElement), V = n => cs.getPropertyValue(n).trim();
   const ink = V('--ink'), mute = V('--mute'), rule = V('--rule'), paper2 = V('--paper-2'), night = V('--night'), acc = V('--accent'), acc2 = V('--accent-2'), win = V('--win'), crestBg = V('--crest');
   const body = V('--f-body'), num = 'Archivo, ' + body, head = V('--f-head');
@@ -1437,20 +1444,28 @@ async function drawReport(rd){
   c.fillStyle = acc; c.beginPath(); c.moveTo(W - 246, 0); c.lineTo(W - 228, 0); c.lineTo(W - 314, HEAD); c.lineTo(W - 332, HEAD); c.closePath(); c.fill();
   c.textBaseline = 'alphabetic';
   c.fillStyle = '#ff6b81'; c.font = `800 24px ${num}`; if ('letterSpacing' in c) c.letterSpacing = '5px';
-  c.fillText("S16 · PICK'EM 竞猜战报", 64, 94); if ('letterSpacing' in c) c.letterSpacing = '0px';
+  c.fillText(pre ? "S16 · PICK'EM 赛前预测单" : "S16 · PICK'EM 单轮预测战报", 64, 94); if ('letterSpacing' in c) c.letterSpacing = '0px';
   c.fillStyle = '#fff'; c.font = `900 86px ${head}`; c.fillText(rd.name, 64, 200);
-  c.fillStyle = 'rgba(255,255,255,.62)'; c.font = `400 26px ${body}`; c.fillText('2026 英雄联盟全球总决赛 · 单轮竞猜', 64, 256);
-  // summary
+  c.fillStyle = 'rgba(255,255,255,.62)'; c.font = `400 26px ${body}`; c.fillText('2026 英雄联盟全球总决赛 · 单轮预测', 64, 256);
+  // summary: picks only before the round, hits and accuracy after it
   let y = HEAD; narrow(true);
-  c.fillStyle = ink; c.font = `900 150px ${num}`; c.fillText(String(st.hit), 64, y + 168);
-  const hw = c.measureText(String(st.hit)).width; c.fillStyle = mute; c.font = `900 70px ${num}`; c.fillText('/' + st.decided, 64 + hw + 8, y + 168);
-  c.textAlign = 'right'; c.fillStyle = acc; c.font = `900 150px ${num}`; c.fillText(st.decided ? Math.round(st.hit / st.decided * 100) + '%' : '–', W - 64, y + 168);
-  narrow(false); c.font = `400 24px ${body}`; c.fillStyle = mute; c.fillText('准确率', W - 64, y + 206);
-  c.textAlign = 'left'; c.fillText(`命中 / 竞猜场次（本轮共 ${st.total} 场）`, 64, y + 206);
+  if (pre) {
+    c.fillStyle = ink; c.font = `900 150px ${num}`; c.fillText(String(st.picked), 64, y + 168);
+    const pw = c.measureText(String(st.picked)).width; c.fillStyle = mute; c.font = `900 70px ${num}`; c.fillText('/' + st.total, 64 + pw + 8, y + 168);
+    c.textAlign = 'right'; c.fillStyle = acc; c.font = `900 120px ${head}`; c.fillText('赛前', W - 64, y + 160);
+    narrow(false); c.font = `400 24px ${body}`; c.fillStyle = mute; c.fillText(`生成时本轮还有 ${left} 场未开赛`, W - 64, y + 206);
+    c.textAlign = 'left'; c.fillText('已预测场次', 64, y + 206);
+  } else {
+    c.fillStyle = ink; c.font = `900 150px ${num}`; c.fillText(String(st.hit), 64, y + 168);
+    const hw = c.measureText(String(st.hit)).width; c.fillStyle = mute; c.font = `900 70px ${num}`; c.fillText('/' + st.decided, 64 + hw + 8, y + 168);
+    c.textAlign = 'right'; c.fillStyle = acc; c.font = `900 150px ${num}`; c.fillText(st.decided ? Math.round(st.hit / st.decided * 100) + '%' : '–', W - 64, y + 168);
+    narrow(false); c.font = `400 24px ${body}`; c.fillStyle = mute; c.fillText('准确率', W - 64, y + 206);
+    c.textAlign = 'left'; c.fillText(`命中 / 已预测场次（本轮共 ${st.total} 场）`, 64, y + 206);
+  }
   c.fillStyle = ink; c.fillRect(64, y + SUM - 4, W - 128, 4);
   // one row per match
   ms.forEach((m, i) => {
-    const yy = HEAD + SUM + i * ROW, k = S.pk[m.id], w = m.res && m.res.w;
+    const yy = HEAD + SUM + i * ROW, k = S.pk[m.id], w = !pre && m.res && m.res.w;
     if (i % 2) { c.fillStyle = paper2; c.fillRect(0, yy, W, ROW); }
     const crestAt = (id, x) => { c.fillStyle = crestBg; rrect(c, x, yy + 26, 76, 76, 16); c.fill(); const im = logos[id]; if (im) { if (w && w !== id) c.globalAlpha = .45; c.drawImage(im, x + 9, yy + 35, 58, 58); c.globalAlpha = 1; } };
     const code = (id, x, align) => {
@@ -1461,10 +1476,11 @@ async function drawReport(rd){
     };
     crestAt(m.a, 64); code(m.a, 158, 'left');
     crestAt(m.b, 812 - 76); code(m.b, 812 - 94, 'right');
-    c.textAlign = 'center'; narrow(true); c.font = `900 52px ${num}`; c.fillStyle = ink; c.fillText(m.res ? scoreAB(m) : 'VS', 440, yy + 82); narrow(false);
+    c.textAlign = 'center'; narrow(true); c.font = `900 52px ${num}`; c.fillStyle = ink; c.fillText(!pre && m.res ? scoreAB(m) : 'VS', 440, yy + 82); narrow(false);
     // verdict
     const cx = 950, cy = yy + 64;
-    if (k && m.res) {
+    if (pre) { c.font = `700 22px ${body}`; c.fillStyle = k ? acc : mute; c.fillText(k ? '已预测' : '未预测', cx, cy + 8); }
+    else if (k && m.res) {
       const ok = k.w === w; c.beginPath(); c.arc(cx, cy, 38, 0, Math.PI * 2);
       if (ok) { c.fillStyle = win; c.fill(); } else { c.lineWidth = 4; c.strokeStyle = rule; c.stroke(); }
       c.strokeStyle = ok ? '#fff' : mute; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath();
@@ -1472,7 +1488,7 @@ async function drawReport(rd){
       c.stroke(); c.font = `700 20px ${body}`; c.fillStyle = ok ? win : mute; c.fillText(ok ? '命中' : '未中', cx, yy + 128);
     } else { c.font = `400 22px ${body}`; c.fillStyle = mute; c.fillText('未参与', cx, cy + 8); }
     c.textAlign = 'left'; c.font = `400 21px ${body}`; c.fillStyle = mute;
-    c.fillText(k ? `我选 ${k.w} · 预测于 ${fStamp(k.t)}（${tzLabel()}）· 开赛前 ${dur(m.t - k.t)}${k.v ? ' · 已核对官方数据' : ''}` : `开赛 ${fStamp(m.t)} · 没有参与这场竞猜`, 64, yy + ROW - 14);
+    c.fillText(k ? `我选 ${k.w} · 预测于 ${fStamp(k.t)}（${tzLabel()}）· 开赛前 ${dur(m.t - k.t)}${k.v ? ' · 已核对官方数据' : ''}` : `开赛 ${fStamp(m.t)} · 没有预测这场`, 64, yy + ROW - 14);
     c.fillStyle = rule; c.fillRect(64, yy + ROW - 1, W - 128, 1);
   });
   // footer
@@ -1480,15 +1496,19 @@ async function drawReport(rd){
   c.fillStyle = night; c.fillRect(0, y, W, FOOT);
   c.fillStyle = '#fff'; c.font = `900 40px ${num}`; if ('fontStretch' in c) c.fontStretch = 'expanded'; c.fillText('S16', 64, y + 76); narrow(false);
   c.fillStyle = 'rgba(255,255,255,.62)'; c.font = `400 21px ${body}`;
-  c.fillText('预测时间由浏览器记录，标注"已核对"的预测在提交时已比对 LoL Esports 官方数据，确认比赛尚未开始。', 64, y + 122);
+  c.fillText(pre ? `赛前预测单，生成时本轮还有 ${left} 场未开赛。标注"已核对"的预测在提交时已比对官方数据。` : '预测时间由浏览器记录，标注"已核对"的预测在提交时已比对 LoL Esports 官方数据，确认比赛尚未开始。', 64, y + 122);
   c.fillText(`生成于 ${fStamp(Date.now())}（${tzLabel()}） · stayintack.github.io/code/self-made-website/lol-s16-website`, 64, y + 158);
   return cv.toDataURL('image/png');
 }
-async function openReport(id){
+async function openReport(id, mode = 'full'){
   const rd = pkRounds().find(r => r.id === id); if (!rd) return;
+  const pre = mode === 'pre', title = pre ? '赛前预测单' : '单轮预测战报';
+  if (pre) { S.pkConf[id] = Date.now(); save(); renderPK(); }
+  $('report-t').textContent = title;
   $('report-body').innerHTML = '<p class="sub">正在生成…</p>'; openModal('report');
-  const url = await drawReport(rd);
-  $('report-body').innerHTML = `<img src="${url}" alt="${rd.name}竞猜战报"><div class="row"><a class="btn red" href="${url}" download="S16-${rd.name}-竞猜战报.png">保存图片</a></div>`;
+  const url = await drawReport(rd, mode);
+  $('report-body').innerHTML = `<img src="${url}" alt="${rd.name}${title}"><div class="row"><a class="btn red" href="${url}" download="S16-${rd.name}-${title}.png">保存图片</a></div>` +
+    (pre ? '<p class="note">开赛前还可以改，改完再点一次「确认预测」生成新的预测单。这一轮打完后，可以生成带准确率的完整战报。</p>' : '');
 }
 
 /* ---------- live links / share ---------- */
@@ -1506,17 +1526,17 @@ function predSummary(M){
 function renderPoster(M){
   const {adv, ko, pi} = predSummary(M), rec = M.sw.rec;
   const logos = (ids, sub) => `<div class="plogos">${ids.map(id => `<span>${crest(id)}${short(id)}${sub ? `<em>${sub(id)}</em>` : ''}</span>`).join('')}</div>`;
-  let h = '<span class="kicker">S16 · 我的预测</span>';
+  let h = '<span class="kicker">S16 · 全程模拟预测</span>';
   if (ko.champ) {
     h += `<div class="champ">${crest(ko.champ)}<span class="tt">${ko.champ}</span><small>冠军 · 决赛 ${scoreAB(ko.f)} 击败 ${ko.runnerUp}</small></div>`;
     h += `<div class="prow"><small>四强</small>${logos(ko.sf.flatMap(m => [m.a, m.b]))}</div>`;
-  } else h += '<p style="margin:18px auto 4px;color:var(--night-mute);font-size:13px">还没预测到冠军。打开预测开关后点选未开赛比赛的胜者，或点「按实力模拟」。</p>';
+  } else h += '<p style="margin:18px auto 4px;color:var(--night-mute);font-size:13px">还没模拟到冠军。在各阶段点选未开赛比赛的胜者，或点「一键AI自动模拟预测」。</p>';
   if (adv.length) h += `<div class="prow"><small>瑞士轮晋级</small>${logos(adv, id => rec[id].w + '-' + rec[id].l)}</div>`;
   if (pi.champ) h += `<div class="prow"><small>入围赛冠军</small>${logos([pi.champ])}</div>`;
   $('poster').innerHTML = h;
 }
 function summaryText(M){
-  const {adv, ko, pi} = predSummary(M), rec = M.sw.rec, L = ['我的 S16 预测'];
+  const {adv, ko, pi} = predSummary(M), rec = M.sw.rec, L = ['我的 S16 全程模拟预测'];
   if (ko.champ) { L.push('冠军：' + ko.champ + '（决赛 ' + ko.f.a + ' ' + scoreAB(ko.f) + ' ' + ko.f.b + '）'); L.push('四强：' + ko.sf.flatMap(m => [m.a, m.b]).join(' / ')); }
   if (adv.length) L.push('瑞士轮晋级：' + adv.map(id => id + ' ' + rec[id].w + '-' + rec[id].l).join('，'));
   if (pi.champ) L.push('入围赛冠军：' + pi.champ);
@@ -1562,7 +1582,7 @@ function simulateRest(){
     if (!pend.length) break;
     pend.forEach(m => { S.picks[m.key] = Object.assign(samplePick(m.a, m.b, m.bo, rng), {auto: true}); });
   }
-  save(); renderAll(); toast('已按实力模拟全部未开赛比赛，再点一次换一组结果');
+  save(); renderAll(); toast('已一键模拟全部未开赛比赛，再点一次换一组结果');
 }
 function currentStage(){
   const open = sts => MATCHES.some(m => sts.includes(m.st) && !m.res);
@@ -1598,7 +1618,7 @@ let clearArmed = null;
 document.addEventListener('click', e => {
   const t = e.target;
   const pk = t.closest('[data-pk]'); if (pk) { pkPick(pk.dataset.pk, pk.dataset.team); return; }
-  const rp = t.closest('[data-report]'); if (rp) { openReport(rp.dataset.report); return; }
+  const rp = t.closest('[data-report]'); if (rp) { openReport(rp.dataset.report, rp.dataset.mode); return; }
   const el = t.closest('[data-key][data-team]'); if (el) { pick(el.dataset.key, el.dataset.team, +el.dataset.bo); return; }
   const cy = t.closest('[data-cycle]'); if (cy) { const p = S.picks[cy.dataset.cycle]; if (p) setScore(cy.dataset.cycle, p.s === '2-0' ? '2-1' : '2-0'); return; }
   const ss = t.closest('[data-setscore]'); if (ss) { setScore(ss.dataset.setscore, ss.dataset.s); return; }
@@ -1620,8 +1640,8 @@ document.addEventListener('click', e => {
   else if (id === 'btn-redraw') { S.drawSeed = (Math.random() * 1e9) | 0; save(); renderAll(); toast('已重新模拟首轮抽签'); }
   else if (id === 'btn-clear') {
     const b = $('btn-clear');
-    if (clearArmed) { clearTimeout(clearArmed); clearArmed = null; S.picks = {}; save(); renderAll(); b.textContent = '清空预测'; b.classList.remove('danger'); toast('已清空全部预测'); }
-    else { b.textContent = '再点一次确认'; b.classList.add('danger'); clearArmed = setTimeout(() => { clearArmed = null; b.textContent = '清空预测'; b.classList.remove('danger'); }, 3000); }
+    if (clearArmed) { clearTimeout(clearArmed); clearArmed = null; S.picks = {}; save(); renderAll(); b.textContent = '清空全程模拟'; b.classList.remove('danger'); toast('已清空全程模拟预测'); }
+    else { b.textContent = '再点一次确认'; b.classList.add('danger'); clearArmed = setTimeout(() => { clearArmed = null; b.textContent = '清空全程模拟'; b.classList.remove('danger'); }, 3000); }
   }
   else if (id === 'btn-copytext') copy(summaryText(MODEL), '已复制文字版');
   else if (id === 'btn-copycode') copy(encodeCode(), '已复制预测码');
@@ -1638,7 +1658,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { if (DR) closeDetail(); else closeModals(); }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.kcard.tap')) { e.preventDefault(); openDetail(e.target.dataset.detail); }
 });
-$('pred').addEventListener('change', e => { S.pred = e.target.checked; save(); renderAll(); toast(S.pred ? '预测已开启：点选未开赛比赛的胜者' : '已切回真实赛况'); });
+$('pred').addEventListener('change', e => { S.pred = e.target.checked; save(); renderAll(); toast(S.pred ? '全程模拟预测已开启：点选未开赛比赛的胜者' : '已切回真实赛况'); });
 $('flow').addEventListener('mouseover', e => { const el = e.target.closest('[data-tm]'); highlight(el ? el.dataset.tm : null); });
 $('flow').addEventListener('mouseleave', () => highlight(null));
 $('addform').addEventListener('submit', e => {

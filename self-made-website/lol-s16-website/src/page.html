@@ -408,6 +408,13 @@ button.pk-t:hover:not(:disabled){border-color:var(--ink)}
 .pk-card.miss .pk-t.sel{border-color:var(--rule-2);background:var(--paper-2);color:var(--ink-2)}
 .pk-next{padding:18px;border:1.5px dashed var(--rule-2);border-radius:10px;color:var(--mute);font-size:13px;text-align:center}
 .pk-note{color:var(--mute);font-size:12px;margin:-8px 0 26px;max-width:80ch}
+.pk-bar{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;padding:10px 10px 10px 18px;border-radius:14px;background:var(--night);color:#fff;box-shadow:0 12px 30px -10px rgba(14,14,17,.55)}
+.pk-bar b{display:block;font:900 17px var(--f-head)}
+.pk-bar small{display:block;color:var(--night-mute);font-size:12px;white-space:nowrap}
+.pk-bar .btn{flex:none;border-color:var(--accent-2);background:var(--accent-2);color:#fff}
+.pk-bar .btn:hover{background:#fff;color:var(--accent);border-color:#fff}
+.pk-bar .btn.off{background:transparent;border-color:var(--night-line);color:var(--night-mute)}
+body.on-pk .toast{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 #report-body img{display:block;width:100%;border-radius:8px;border:1px solid var(--rule)}
 #report-body .row{margin-top:14px}
 
@@ -582,6 +589,7 @@ button.pk-t:hover:not(:disabled){border-color:var(--ink)}
     <div class="sec-h"><div><span class="kicker">Pick'em · Round by round</span><h2>单轮预测</h2></div>
       <p class="dek">每轮官方抽签后开放，开赛前可以随时选、随时改，开赛即锁定，每次选择都会记录时间。选好后点「确认预测」立即生成赛前预测单；这一轮打完，再生成带准确率的战报。</p><div class="ctrl"></div></div>
     <div id="pk"></div>
+    <div class="pk-bar" id="pk-bar" hidden></div>
   </section>
 
   <section class="panel" id="p-schedule" role="tabpanel" hidden>
@@ -1412,6 +1420,13 @@ function renderPK(){
     return `<section class="pk-round"><div class="pk-h"><div><span class="kicker">${rd.kicker}</span><h3>${rd.name}</h3><p>${rd.ms.length} 场 · 已预测 ${st.picked} 场 · 命中 ${st.hit}/${st.decided}${done && st.decided ? ' · 准确率 ' + Math.round(st.hit / st.decided * 100) + '%' : ''}${conf}</p></div><div class="ctrl">${act}</div></div><div class="pk-grid">${rd.ms.map(pkCard).join('')}</div></section>`;
   });
   const openBlocks = order.filter(rd => !pkDone(rd)).length;
+  const live = rounds.find(rd => rd.ms.some(m => !pkLocked(m)));
+  if (live) {
+    const st = pkStat(live.ms), left = live.ms.filter(m => !pkLocked(m)).length, conf = S.pkConf[live.id];
+    $('pk-bar').innerHTML = `<div><b>${live.name}</b><small>已选 ${st.picked} 场 · 还有 ${left} 场可预测${conf ? ' · 已于 ' + fTime(conf) + ' 确认' : ''}</small></div>` +
+      (st.picked ? `<button class="btn" data-report="${live.id}" data-mode="pre">${conf ? '重新确认' : '确认预测'}</button>` : '<button class="btn off" data-pk-hint>先选至少一场</button>');
+  }
+  $('pk-bar').hidden = !live;
   $('pk').innerHTML = sum + (rounds.length ? blocks.slice(0, openBlocks).join('') + next + blocks.slice(openBlocks).join('') : next || '<div class="pk-next">官方抽签后开放预测。</div>');
 }
 async function pkPick(id, team){
@@ -1601,6 +1616,7 @@ function syncStage(){
 function setTab(t){
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
   ['pi', 'swiss', 'ko', 'pk', 'schedule'].forEach(k => $('p-' + k).hidden = k !== t);
+  document.body.classList.toggle('on-pk', t === 'pk');
   requestAnimationFrame(redraw);
 }
 function openModal(id){ if (id === 'share') renderPoster(MODEL); if (id === 'live') renderLive(); if (id === 'teams') renderTeamPicker(); $(id).hidden = false; const c = $(id).querySelector('[data-close]'); c && c.focus(); }
@@ -1617,6 +1633,7 @@ async function copy(text, okMsg){
 let clearArmed = null;
 document.addEventListener('click', e => {
   const t = e.target;
+  if (t.closest('[data-pk-hint]')) { toast('点击比赛卡片里你认为会赢的队伍'); return; }
   const pk = t.closest('[data-pk]'); if (pk) { pkPick(pk.dataset.pk, pk.dataset.team); return; }
   const rp = t.closest('[data-report]'); if (rp) { openReport(rp.dataset.report, rp.dataset.mode); return; }
   const el = t.closest('[data-key][data-team]'); if (el) { pick(el.dataset.key, el.dataset.team, +el.dataset.bo); return; }

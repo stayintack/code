@@ -108,6 +108,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   .tools{gap:6px}
 }
 .star-ic{display:none;color:var(--accent);font-size:15px;line-height:1}
+@media (max-width:600px){.tabs button{padding:0 9px;font-size:14.5px}.tabs button[aria-selected="true"]::after{left:9px;right:9px}.tabs .cnt{margin-left:4px}}
 @media (max-width:600px){.wide{display:none}.tools .btn{padding:6px 10px}.brand span{display:none}.stack,.lbl-f{display:none}.star-ic{display:inline}.switch{gap:6px;font-size:12.5px}.switch i{width:32px;height:19px}.switch i::after{width:13px;height:13px}.switch input:checked + i::after{transform:translateX(13px)}}
 
 /* cover */
@@ -364,6 +365,50 @@ tr.out td{opacity:.42}
 .srow .stt.live{color:var(--live);font-weight:800;letter-spacing:.1em}
 @media (max-width:760px){.day{grid-template-columns:minmax(0,1fr);gap:8px}.dd{display:flex;align-items:baseline;gap:10px}.dd b{font-size:34px}.dd small{margin:0}.srow{grid-template-columns:52px minmax(0,1fr) auto;row-gap:4px}.srow .stg{grid-column:2;grid-row:1}.srow .stt{grid-column:3;grid-row:1}.srow .mu{grid-column:1/-1}}
 
+/* pick'em */
+.tabs .cnt{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 5px;margin-left:6px;border-radius:999px;background:var(--accent);color:#fff;font:800 10.5px var(--f-num);font-stretch:100%;vertical-align:2px}
+.pk-sum{display:grid;grid-template-columns:repeat(4,minmax(0,auto));justify-content:start;gap:12px 48px;padding:4px 0 26px}
+.pk-sum b{display:block;font:900 46px/1 var(--f-num);font-stretch:72%;font-variant-numeric:tabular-nums}
+.pk-sum b.acc{color:var(--accent)}
+.pk-sum small{display:block;margin-top:6px;color:var(--mute);font-size:12px;white-space:nowrap}
+@media (max-width:600px){.pk-sum{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pk-round{margin-bottom:44px}
+.pk-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--ink)}
+.pk-h h3{font:900 28px var(--f-head);margin-top:8px}
+.pk-h p{margin:4px 0 0;color:var(--mute);font-size:13px}
+.pk-h .wait{font-size:12.5px;color:var(--mute)}
+.pk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+@media (max-width:600px){.pk-grid{grid-template-columns:minmax(0,1fr)}}
+.pk-card{border:1px solid var(--rule-2);border-radius:10px;overflow:hidden;background:var(--paper)}
+.pk-meta{display:flex;justify-content:space-between;gap:8px;padding:8px 12px;font-size:11.5px;color:var(--mute);background:var(--paper-2);border-bottom:1px solid var(--rule);white-space:nowrap}
+.pk-meta .open{color:var(--accent);font-weight:700}
+.pk-meta .live{color:var(--live);font-weight:800;letter-spacing:.1em}
+.pk-meta .hit{color:var(--win);font-weight:800}
+.pk-meta .miss{color:var(--ink-2);font-weight:800}
+.pk-teams{display:grid;grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr);gap:6px;padding:10px}
+.pk-t{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;border:1.5px solid var(--rule);font:900 22px var(--f-num);font-stretch:78%;text-align:left;min-width:0;transition:border-color .15s,background .15s,color .15s}
+.pk-t.b{flex-direction:row-reverse;text-align:right}
+.pk-t .crest{--s:38px}
+.pk-t .nm{display:flex;flex-direction:column;align-items:flex-start;gap:5px;line-height:1;min-width:0}
+.pk-t.b .nm{align-items:flex-end}
+button.pk-t:hover:not(:disabled){border-color:var(--ink)}
+.pk-t:disabled{cursor:default}
+.pk-t.sel{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.pk-t.lose{color:var(--faint)}
+.pk-t.lose .crest{opacity:.45;filter:grayscale(1)}
+.pk-vs{display:grid;place-items:center;font:900 22px var(--f-num);font-stretch:75%;color:var(--faint);font-variant-numeric:tabular-nums}
+.pk-vs.sc{color:var(--ink)}
+.pk-vs.live{color:var(--live)}
+.pk-foot{padding:0 12px 10px;font-size:12px;color:var(--mute)}
+.pk-foot b{color:var(--ink);font-weight:700}
+.pk-card.hit{border-color:var(--win)}
+.pk-card.hit .pk-t.sel{border-color:var(--win);background:var(--win-soft);color:var(--win)}
+.pk-card.miss .pk-t.sel{border-color:var(--rule-2);background:var(--paper-2);color:var(--ink-2)}
+.pk-next{padding:18px;border:1.5px dashed var(--rule-2);border-radius:10px;color:var(--mute);font-size:13px;text-align:center}
+.pk-note{color:var(--mute);font-size:12px;margin:-8px 0 26px;max-width:80ch}
+#report-body img{display:block;width:100%;border-radius:8px;border:1px solid var(--rule)}
+#report-body .row{margin-top:14px}
+
 /* drawer */
 .scrim{position:fixed;inset:0;z-index:44;background:rgba(14,14,17,.45)}
 .drawer{position:fixed;top:0;right:0;bottom:0;z-index:45;width:min(600px,100%);background:var(--paper);overflow-y:auto;box-shadow:-20px 0 60px -20px rgba(0,0,0,.4);padding-bottom:env(safe-area-inset-bottom,0px);animation:slide .22s ease-out}
@@ -487,6 +532,7 @@ tr.out td{opacity:.42}
       <button role="tab" data-tab="pi">入围赛</button>
       <button role="tab" data-tab="swiss">瑞士轮</button>
       <button role="tab" data-tab="ko">淘汰赛</button>
+      <button role="tab" data-tab="pk" id="tab-pk">竞猜</button>
       <button role="tab" data-tab="schedule">赛程</button>
     </nav>
     <div class="tools">
@@ -530,6 +576,12 @@ tr.out td{opacity:.42}
     <p class="swipe">← 左右滑动查看完整对阵 →</p><div class="scroll-x"><div class="bracket" id="bracket"></div></div>
   </section>
 
+  <section class="panel" id="p-pk" role="tabpanel" hidden>
+    <div class="sec-h"><div><span class="kicker">Pick'em · 单轮竞猜</span><h2>竞猜</h2></div>
+      <p class="dek">每轮官方抽签后开放。比赛开始前可以随时选、随时改，开赛即锁定。一轮全部打完后，可以生成你的准确率战报图，图上带每场的预测时间。</p><div class="ctrl"></div></div>
+    <div id="pk"></div>
+  </section>
+
   <section class="panel" id="p-schedule" role="tabpanel" hidden>
     <div class="sec-h"><div><span class="kicker">Schedule</span><h2>赛程</h2></div>
       <p class="dek">全部场次与比分，来自 LoL Esports 官方赛程。点击任意一场查看详情。</p>
@@ -560,6 +612,14 @@ tr.out td{opacity:.42}
       <input id="lu" placeholder="https://…" type="url" required>
       <button class="btn" type="submit">添加</button>
     </form>
+  </div>
+</div>
+
+<div class="modal" id="report" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="report-t">
+    <div class="sheet-h"><h2 id="report-t">竞猜战报</h2><button data-close aria-label="关闭">×</button></div>
+    <p class="sub">手机上长按图片即可保存，电脑上点下方按钮下载。</p>
+    <div id="report-body"></div>
   </div>
 </div>
 
@@ -668,7 +728,7 @@ async function refreshLive(){
 
 /* ---------- state ---------- */
 const KEY = 's16-watch-v2';
-let S = {picks:{}, pred:false, drawSeed:20261018, qfSeed:1114, tz:'Asia/Shanghai', links:[], follow:[], onlyFollow:false};
+let S = {picks:{}, pred:false, drawSeed:20261018, qfSeed:1114, tz:'Asia/Shanghai', links:[], follow:[], onlyFollow:false, pk:{}};
 try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -1293,6 +1353,144 @@ function renderDrawer(){
     <div class="dr-body">${body}</div>`;
 }
 
+/* ---------- pick'em: official matches only, time-stamped, locked at start ---------- */
+function pkRounds(){
+  const rounds = [];
+  Object.keys(MODEL.byR).map(Number).sort((x, y) => x - y).forEach(r => rounds.push({id: 'sw' + r, kicker: 'Swiss · Round ' + r, name: `瑞士轮 第${r}轮`, ms: MODEL.byR[r]}));
+  [['qf', '八强赛', 'Quarterfinals'], ['sf', '半决赛', 'Semifinals'], ['f', '总决赛', 'Final']].forEach(([k, n, en]) => {
+    const ms = KO_OFF[k].filter(m => m.a && m.b); if (ms.length) rounds.push({id: k, kicker: en, name: n, ms});
+  });
+  return rounds;
+}
+const pkLocked = m => m.state !== 'unstarted' || m.live || Date.now() >= m.t;
+const pkDone = rd => rd.ms.every(m => m.res);
+function pkStat(ms){
+  let picked = 0, decided = 0, hit = 0;
+  ms.forEach(m => { const k = S.pk[m.id]; if (!k) return; picked++; if (m.res) { decided++; if (k.w === m.res.w) hit++; } });
+  return {picked, decided, hit, total: ms.length};
+}
+const dur = ms => { const m = Math.max(0, Math.round(ms / 60000)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mm = m % 60; return d ? `${d}天${h}小时` : h ? `${h}小时${mm}分` : `${mm}分钟`; };
+const fStamp = ts => `${fCN(ts)} ${fTime(ts)}`;
+function pkCard(m){
+  const k = S.pk[m.id], lock = pkLocked(m), w = m.res && m.res.w;
+  let st;
+  if (m.res) st = !k ? '<span>未参与</span>' : k.w === w ? '<span class="hit">✓ 命中</span>' : '<span class="miss">✗ 未中</span>';
+  else if (m.live || m.state === 'inProgress') st = '<span class="live">LIVE · 已锁定</span>';
+  else if (lock) st = '<span>已锁定</span>';
+  else st = `<span class="open">可竞猜 · 还剩 ${dur(m.t - Date.now())}</span>`;
+  const team = (id, side) => {
+    const cls = (k && k.w === id ? ' sel' : '') + (w && w !== id ? ' lose' : '');
+    return `<button class="pk-t ${side}${cls}" data-pk="${m.id}" data-team="${id}" ${lock ? 'disabled' : ''} aria-pressed="${!!(k && k.w === id)}">${crest(id)}<span class="nm">${short(id)}${seedTag(id)}</span></button>`;
+  };
+  const mid = m.res ? `<span class="pk-vs sc">${scoreAB(m)}</span>` : m.live ? `<span class="pk-vs live">${m.ga}:${m.gb}</span>` : '<span class="pk-vs">VS</span>';
+  const foot = k ? `我选 <b>${k.w}</b> · 预测于 ${fStamp(k.t)} · 开赛前 ${dur(m.t - k.t)}` : lock ? '没有参与这场竞猜' : '点击你认为会赢的队伍';
+  return `<div class="pk-card ${m.res && k ? (k.w === w ? 'hit' : 'miss') : ''}"><div class="pk-meta"><span>${fCN(m.t)} ${fWk(m.t)} ${fTime(m.t)} · BO${m.bo}</span>${st}</div><div class="pk-teams">${team(m.a, 'a')}${mid}${team(m.b, 'b')}</div><div class="pk-foot">${foot}</div></div>`;
+}
+function renderPK(){
+  if (!MODEL) return;
+  const rounds = pkRounds();
+  const open = rounds.flatMap(rd => rd.ms).filter(m => !pkLocked(m) && !S.pk[m.id]).length;
+  const tab = $('tab-pk'); tab.querySelectorAll('.cnt').forEach(n => n.remove());
+  if (open) tab.insertAdjacentHTML('beforeend', `<span class="cnt" title="还有 ${open} 场可以竞猜">${open}</span>`);
+  const all = pkStat(rounds.flatMap(rd => rd.ms));
+  const sum = `<div class="pk-sum"><div><b>${all.hit}<span style="color:var(--faint)">/${all.decided}</span></b><small>命中 / 已出结果</small></div><div><b class="acc">${all.decided ? Math.round(all.hit / all.decided * 100) + '%' : '–'}</b><small>总准确率</small></div><div><b>${all.picked}</b><small>已竞猜场次</small></div><div><b>${open}</b><small>现在可以竞猜</small></div></div>
+    <p class="pk-note">预测时间由你的浏览器记录。每次提交前会先核对 LoL Esports 官方数据，确认比赛还没开始，核对过的预测在战报上会注明。记录只保存在这台设备的浏览器里，换设备或清除浏览器数据会丢失。</p>`;
+  const swR = Object.keys(MODEL.byR).length, swOver = MATCHES.filter(m => m.st === 'swiss').every(m => m.res);
+  let next = '';
+  if (swR < 5 && !swOver) next = `<section class="pk-round"><div class="pk-h"><div><span class="kicker">Swiss · Round ${swR + 1}</span><h3>瑞士轮 第${swR + 1}轮</h3></div></div><div class="pk-next">上一轮打完后官方抽签，对阵公布后这里自动开放竞猜。</div></section>`;
+  else if (swOver && !KO_OFF.qf.some(m => m.a && m.b)) next = `<section class="pk-round"><div class="pk-h"><div><span class="kicker">Quarterfinals</span><h3>八强赛</h3></div></div><div class="pk-next">瑞士轮结束后官方抽签，对阵公布后这里自动开放竞猜。</div></section>`;
+  const order = rounds.slice().sort((x, y) => (pkDone(x) - pkDone(y)) || (pkDone(x) ? rounds.indexOf(y) - rounds.indexOf(x) : rounds.indexOf(x) - rounds.indexOf(y)));
+  const blocks = order.map(rd => {
+    const st = pkStat(rd.ms), done = pkDone(rd);
+    const act = done ? (st.picked ? `<button class="btn red" data-report="${rd.id}">生成战报图</button>` : '<span class="wait">这一轮没有参与竞猜</span>') : `<span class="wait">本轮结束后可生成战报图</span>`;
+    return `<section class="pk-round"><div class="pk-h"><div><span class="kicker">${rd.kicker}</span><h3>${rd.name}</h3><p>${rd.ms.length} 场 · 已竞猜 ${st.picked} 场 · 命中 ${st.hit}/${st.decided}${done && st.decided ? ' · 准确率 ' + Math.round(st.hit / st.decided * 100) + '%' : ''}</p></div><div class="ctrl">${act}</div></div><div class="pk-grid">${rd.ms.map(pkCard).join('')}</div></section>`;
+  });
+  const openBlocks = order.filter(rd => !pkDone(rd)).length;
+  $('pk').innerHTML = sum + (rounds.length ? blocks.slice(0, openBlocks).join('') + next + blocks.slice(openBlocks).join('') : next || '<div class="pk-next">官方抽签后开放竞猜。</div>');
+}
+async function pkPick(id, team){
+  if (LIVE_DATA && Date.now() - DATA_AT > 90e3) { try { ingest(await fetchSchedule()); DATA_AT = Date.now(); renderAll(); } catch (e) {} }
+  const m = MATCHES.find(x => x.id === id);
+  if (!m || pkLocked(m)) { toast('这场已经开赛，竞猜已锁定'); renderPK(); return; }
+  if (S.pk[id] && S.pk[id].w === team) { delete S.pk[id]; toast('已取消这场的竞猜'); }
+  else { S.pk[id] = {w: team, t: Date.now(), v: LIVE_DATA}; toast(`已选 ${team}，开赛前都可以改`); }
+  save(); renderPK();
+}
+
+/* ---------- report image ---------- */
+const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+function rrect(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+async function drawReport(rd){
+  try { await Promise.all(['900 80px "S16 Serif"', '900 60px Archivo', '800 24px Archivo'].map(f => document.fonts.load(f, '竞猜战报瑞士轮 S16 0123'))); } catch (e) {}
+  const cs = getComputedStyle(document.documentElement), V = n => cs.getPropertyValue(n).trim();
+  const ink = V('--ink'), mute = V('--mute'), rule = V('--rule'), paper2 = V('--paper-2'), night = V('--night'), acc = V('--accent'), acc2 = V('--accent-2'), win = V('--win'), crestBg = V('--crest');
+  const body = V('--f-body'), num = 'Archivo, ' + body, head = V('--f-head');
+  const ms = rd.ms, st = pkStat(ms), W = 1080, HEAD = 330, SUM = 230, ROW = 168, FOOT = 210, H = HEAD + SUM + ms.length * ROW + FOOT;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d'), narrow = on => { if ('fontStretch' in c) c.fontStretch = on ? 'condensed' : 'normal'; };
+  const logos = {}; await Promise.all([...new Set(ms.flatMap(m => [m.a, m.b]))].map(async id => { logos[id] = LOGO[id] ? await loadImg(LOGO[id]) : null; }));
+  c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+  // header band with the crimson stripe
+  c.fillStyle = night; c.fillRect(0, 0, W, HEAD);
+  const g = c.createLinearGradient(0, 0, 0, HEAD); g.addColorStop(0, acc2); g.addColorStop(1, acc);
+  c.fillStyle = g; c.beginPath(); c.moveTo(W - 210, 0); c.lineTo(W, 0); c.lineTo(W, HEAD); c.lineTo(W - 296, HEAD); c.closePath(); c.fill();
+  c.fillStyle = acc; c.beginPath(); c.moveTo(W - 246, 0); c.lineTo(W - 228, 0); c.lineTo(W - 314, HEAD); c.lineTo(W - 332, HEAD); c.closePath(); c.fill();
+  c.textBaseline = 'alphabetic';
+  c.fillStyle = '#ff6b81'; c.font = `800 24px ${num}`; if ('letterSpacing' in c) c.letterSpacing = '5px';
+  c.fillText("S16 · PICK'EM 竞猜战报", 64, 94); if ('letterSpacing' in c) c.letterSpacing = '0px';
+  c.fillStyle = '#fff'; c.font = `900 86px ${head}`; c.fillText(rd.name, 64, 200);
+  c.fillStyle = 'rgba(255,255,255,.62)'; c.font = `400 26px ${body}`; c.fillText('2026 英雄联盟全球总决赛 · 单轮竞猜', 64, 256);
+  // summary
+  let y = HEAD; narrow(true);
+  c.fillStyle = ink; c.font = `900 150px ${num}`; c.fillText(String(st.hit), 64, y + 168);
+  const hw = c.measureText(String(st.hit)).width; c.fillStyle = mute; c.font = `900 70px ${num}`; c.fillText('/' + st.decided, 64 + hw + 8, y + 168);
+  c.textAlign = 'right'; c.fillStyle = acc; c.font = `900 150px ${num}`; c.fillText(st.decided ? Math.round(st.hit / st.decided * 100) + '%' : '–', W - 64, y + 168);
+  narrow(false); c.font = `400 24px ${body}`; c.fillStyle = mute; c.fillText('准确率', W - 64, y + 206);
+  c.textAlign = 'left'; c.fillText(`命中 / 竞猜场次（本轮共 ${st.total} 场）`, 64, y + 206);
+  c.fillStyle = ink; c.fillRect(64, y + SUM - 4, W - 128, 4);
+  // one row per match
+  ms.forEach((m, i) => {
+    const yy = HEAD + SUM + i * ROW, k = S.pk[m.id], w = m.res && m.res.w;
+    if (i % 2) { c.fillStyle = paper2; c.fillRect(0, yy, W, ROW); }
+    const crestAt = (id, x) => { c.fillStyle = crestBg; rrect(c, x, yy + 26, 76, 76, 16); c.fill(); const im = logos[id]; if (im) { if (w && w !== id) c.globalAlpha = .45; c.drawImage(im, x + 9, yy + 35, 58, 58); c.globalAlpha = 1; } };
+    const code = (id, x, align) => {
+      c.textAlign = align; narrow(true); c.font = `900 58px ${num}`; c.fillStyle = k && k.w === id ? acc : w && w !== id ? mute : ink; c.fillText(short(id), x, yy + 84);
+      const cw = c.measureText(short(id)).width; narrow(false);
+      if (k && k.w === id) { c.fillStyle = acc; c.fillRect(align === 'left' ? x : x - cw, yy + 94, cw, 6); }
+      c.font = `700 19px ${num}`; c.fillStyle = mute; c.fillText(SEED[id] || '', x, yy + 124);
+    };
+    crestAt(m.a, 64); code(m.a, 158, 'left');
+    crestAt(m.b, 812 - 76); code(m.b, 812 - 94, 'right');
+    c.textAlign = 'center'; narrow(true); c.font = `900 52px ${num}`; c.fillStyle = ink; c.fillText(m.res ? scoreAB(m) : 'VS', 440, yy + 82); narrow(false);
+    // verdict
+    const cx = 950, cy = yy + 64;
+    if (k && m.res) {
+      const ok = k.w === w; c.beginPath(); c.arc(cx, cy, 38, 0, Math.PI * 2);
+      if (ok) { c.fillStyle = win; c.fill(); } else { c.lineWidth = 4; c.strokeStyle = rule; c.stroke(); }
+      c.strokeStyle = ok ? '#fff' : mute; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath();
+      if (ok) { c.moveTo(cx - 16, cy + 1); c.lineTo(cx - 4, cy + 14); c.lineTo(cx + 18, cy - 12); } else { c.moveTo(cx - 13, cy - 13); c.lineTo(cx + 13, cy + 13); c.moveTo(cx + 13, cy - 13); c.lineTo(cx - 13, cy + 13); }
+      c.stroke(); c.font = `700 20px ${body}`; c.fillStyle = ok ? win : mute; c.fillText(ok ? '命中' : '未中', cx, yy + 128);
+    } else { c.font = `400 22px ${body}`; c.fillStyle = mute; c.fillText('未参与', cx, cy + 8); }
+    c.textAlign = 'left'; c.font = `400 21px ${body}`; c.fillStyle = mute;
+    c.fillText(k ? `我选 ${k.w} · 预测于 ${fStamp(k.t)}（${tzLabel()}）· 开赛前 ${dur(m.t - k.t)}${k.v ? ' · 已核对官方数据' : ''}` : `开赛 ${fStamp(m.t)} · 没有参与这场竞猜`, 64, yy + ROW - 14);
+    c.fillStyle = rule; c.fillRect(64, yy + ROW - 1, W - 128, 1);
+  });
+  // footer
+  y = HEAD + SUM + ms.length * ROW;
+  c.fillStyle = night; c.fillRect(0, y, W, FOOT);
+  c.fillStyle = '#fff'; c.font = `900 40px ${num}`; if ('fontStretch' in c) c.fontStretch = 'expanded'; c.fillText('S16', 64, y + 76); narrow(false);
+  c.fillStyle = 'rgba(255,255,255,.62)'; c.font = `400 21px ${body}`;
+  c.fillText('预测时间由浏览器记录，标注"已核对"的预测在提交时已比对 LoL Esports 官方数据，确认比赛尚未开始。', 64, y + 122);
+  c.fillText(`生成于 ${fStamp(Date.now())}（${tzLabel()}） · stayintack.github.io/code/self-made-website/lol-s16-website`, 64, y + 158);
+  return cv.toDataURL('image/png');
+}
+async function openReport(id){
+  const rd = pkRounds().find(r => r.id === id); if (!rd) return;
+  $('report-body').innerHTML = '<p class="sub">正在生成…</p>'; openModal('report');
+  const url = await drawReport(rd);
+  $('report-body').innerHTML = `<img src="${url}" alt="${rd.name}竞猜战报"><div class="row"><a class="btn red" href="${url}" download="S16-${rd.name}-竞猜战报.png">保存图片</a></div>`;
+}
+
 /* ---------- live links / share ---------- */
 function renderLive(){
   const all = LIVE.concat(S.links.map((l, i) => ({name:l.name, short:l.name.slice(0, 1), color:'#3a3a44', note:l.url.replace(/^https?:\/\//, ''), url:l.url, own:i})));
@@ -1333,7 +1531,7 @@ function renderAll(){
   MODEL = compute();
   $('pred').checked = S.pred; $('open-share').hidden = !S.pred; $('btn-sim').hidden = !S.pred;
   $('updated').textContent = (LIVE_DATA ? '实时数据 · ' : '数据快照 · ') + fMD(DATA_AT) + ' ' + fTime(DATA_AT) + ' 更新（' + tzLabel() + '）';
-  renderTicker(); renderCover(); renderFollow(); renderPI(MODEL); renderPots(MODEL); renderFlow(MODEL); renderStand(MODEL); renderKO(MODEL); renderSchedule();
+  renderTicker(); renderCover(); renderFollow(); renderPI(MODEL); renderPots(MODEL); renderFlow(MODEL); renderStand(MODEL); renderKO(MODEL); renderSchedule(); renderPK();
   if (!$('share').hidden) renderPoster(MODEL);
   if (DR) renderDrawer();
   clearTimeout(simTimer);
@@ -1382,11 +1580,11 @@ function syncStage(){
 }
 function setTab(t){
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
-  ['pi', 'swiss', 'ko', 'schedule'].forEach(k => $('p-' + k).hidden = k !== t);
+  ['pi', 'swiss', 'ko', 'pk', 'schedule'].forEach(k => $('p-' + k).hidden = k !== t);
   requestAnimationFrame(redraw);
 }
 function openModal(id){ if (id === 'share') renderPoster(MODEL); if (id === 'live') renderLive(); if (id === 'teams') renderTeamPicker(); $(id).hidden = false; const c = $(id).querySelector('[data-close]'); c && c.focus(); }
-function closeModals(){ ['live', 'share', 'teams'].forEach(id => $(id).hidden = true); }
+function closeModals(){ ['live', 'share', 'teams', 'report'].forEach(id => $(id).hidden = true); }
 let toastTimer;
 function toast(msg){
   let el = document.querySelector('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
@@ -1399,6 +1597,8 @@ async function copy(text, okMsg){
 let clearArmed = null;
 document.addEventListener('click', e => {
   const t = e.target;
+  const pk = t.closest('[data-pk]'); if (pk) { pkPick(pk.dataset.pk, pk.dataset.team); return; }
+  const rp = t.closest('[data-report]'); if (rp) { openReport(rp.dataset.report); return; }
   const el = t.closest('[data-key][data-team]'); if (el) { pick(el.dataset.key, el.dataset.team, +el.dataset.bo); return; }
   const cy = t.closest('[data-cycle]'); if (cy) { const p = S.picks[cy.dataset.cycle]; if (p) setScore(cy.dataset.cycle, p.s === '2-0' ? '2-1' : '2-0'); return; }
   const ss = t.closest('[data-setscore]'); if (ss) { setScore(ss.dataset.setscore, ss.dataset.s); return; }
@@ -1456,7 +1656,8 @@ $('tz').value = S.tz;
 renderAll();
 const hashTab = location.hash.slice(1);
 STAGE_NOW = currentStage(); syncStage();
-if (['pi', 'swiss', 'ko', 'schedule'].includes(hashTab)) { userTab = hashTab !== STAGE_NOW; setTab(hashTab); } else setTab(STAGE_NOW);
+if (['pi', 'swiss', 'ko', 'pk', 'schedule'].includes(hashTab)) { userTab = hashTab !== STAGE_NOW; setTab(hashTab); } else setTab(STAGE_NOW);
 setInterval(tick, 1000);
+setInterval(() => { if (!$('p-pk').hidden) renderPK(); }, 30e3);
 refreshLive();
 </script>
